@@ -1226,32 +1226,37 @@ let srIndex=-1;
 function runSearch(){
   const q=search.value.trim().toLowerCase();
   if(!q){ results.classList.remove('open'); return; }
-  const hits=nodes.filter(n=>{
+  const nodeHits=nodes.filter(n=>{
     const hay=(n.name+' '+(n.b||n.blurb||'')+' '+(n.authors||'')).toLowerCase();
     return hay.includes(q);
-  }).sort((a,b)=>{
+  }).map(n=>({kind:'node', id:n.id, name:n.name,
+    col:n.type==='s'?'#232833':THEMES[n.t].color,
+    tag:n.type==='s'?'READING '+n.n:THEMES[n.t].name.toUpperCase()}));
+  const themeHits=Object.entries(THEMES).filter(([k,t])=>
+    (t.name+' '+(t.desc||'')).toLowerCase().includes(q)
+  ).map(([k,t])=>({kind:'theme', id:k, name:t.name, col:t.color, tag:'THEME'}));
+  const hits=[...themeHits,...nodeHits].sort((a,b)=>{
     const an=a.name.toLowerCase().indexOf(q), bn=b.name.toLowerCase().indexOf(q);
     return (an<0?99:an)-(bn<0?99:bn);
   }).slice(0,9);
   srIndex=-1;
-  results.innerHTML=hits.map(n=>{
-    const col=n.type==='s'?'#232833':THEMES[n.t].color;
-    const tag=n.type==='s'?'READING '+n.n:THEMES[n.t].name.toUpperCase();
-    return `<button class="sr" data-go="${n.id}"><span class="dot" style="background:${col}"></span>${esc(n.name)}<small>${tag}</small></button>`;
-  }).join('')||'<div style="padding:10px 12px;font-size:12px;color:var(--faint)">no matches</div>';
+  results.innerHTML=hits.map(h=>
+    `<button class="sr" data-kind="${h.kind}" data-go="${h.id}"><span class="dot" style="background:${h.col}"></span>${esc(h.name)}<small>${h.tag}</small></button>`
+  ).join('')||'<div style="padding:10px 12px;font-size:12px;color:var(--faint)">no matches</div>';
   results.classList.add('open');
 }
+function goResult(el){ if(el.dataset.kind==='theme') selectTheme(el.dataset.go); else select(el.dataset.go); }
 search.addEventListener('input',runSearch);
 search.addEventListener('keydown',e=>{
   const items=[...results.querySelectorAll('.sr')];
   if(e.key==='ArrowDown'){ srIndex=Math.min(srIndex+1,items.length-1); e.preventDefault(); }
   else if(e.key==='ArrowUp'){ srIndex=Math.max(srIndex-1,0); e.preventDefault(); }
-  else if(e.key==='Enter'){ const t=items[srIndex]||items[0]; if(t){ select(t.dataset.go); results.classList.remove('open'); search.blur(); } return; }
+  else if(e.key==='Enter'){ const t=items[srIndex]||items[0]; if(t){ goResult(t); results.classList.remove('open'); search.blur(); } return; }
   else if(e.key==='Escape'){ results.classList.remove('open'); search.blur(); return; }
   items.forEach((el,i)=>el.classList.toggle('active',i===srIndex));
 });
 results.addEventListener('click',e=>{ const b=e.target.closest('[data-go]');
-  if(b){ select(b.dataset.go); results.classList.remove('open'); search.value=''; }});
+  if(b){ goResult(b); results.classList.remove('open'); search.value=''; }});
 document.addEventListener('click',e=>{ if(!e.target.closest('#searchWrap')) results.classList.remove('open'); });
 document.addEventListener('keydown',e=>{
   if(e.key==='/'&&document.activeElement!==search){ e.preventDefault(); search.focus(); }
