@@ -3,7 +3,7 @@
 set -e
 SRC="$(cd "$(dirname "$0")" && pwd)/app.html"
 SITE=/Users/shailen/projects/shailenparmar.com
-OUT=$SITE/public/ai-risk-web/index.html
+OUT=$SITE/public/airiskweb/index.html
 
 node "$(dirname "$0")/check.mjs"   # data integrity gate
 
@@ -14,5 +14,5 @@ printf '\n</body>\n</html>\n' >> "$OUT"
 cd "$SITE"
 npm run build
 npx wrangler deploy
-echo "Deployed: https://shailenparmar.com/ai-risk-web/"
-echo "Remember: git add public/ai-risk-web/index.html && git commit && git push (in shailenparmar.com)"
+echo "Deployed: https://shailenparmar.com/airiskweb/"
+echo "Remember: git add public/airiskweb/index.html && git commit && git push (in shailenparmar.com)"

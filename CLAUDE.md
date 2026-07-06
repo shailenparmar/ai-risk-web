@@ -4,7 +4,7 @@ Interactive concept map of 80,000 Hours' "11 essential resources on AI risk" (20
 67 concept briefings + 11 reading dossiers + 8 theme pages, ~290 links, all in ONE self-contained
 HTML file — no libraries, no build step, everything hand-rolled on canvas.
 
-**Live:** https://shailenparmar.com/ai-risk-web/ (old /airisk/ 301-redirects)
+**Live:** https://shailenparmar.com/airiskweb/ (old /ai-risk-web/ and /airisk/ 301-redirect here; airiskweb.com → here via Cloudflare)
 **Portfolio card:** 2nd project in `~/projects/shailenparmar.com/src/pages/Design.tsx`; thumbnail `public/design/ai-risk-web.png`
 
 ## Files here
@@ -14,7 +14,7 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
   walks 5+ stops with 30+ char notes, walk stops must be among the source's concepts, no orphan nodes.
   RUN AFTER EVERY DATA EDIT.
 - `preview.sh` — wraps app.html + serves http://localhost:8931/local-test.html for review.
-- `build.sh` — wraps app.html → `shailenparmar.com/public/ai-risk-web/index.html`, `npm run build`,
+- `build.sh` — wraps app.html → `shailenparmar.com/public/airiskweb/index.html`, `npm run build`,
   `npx wrangler deploy`. Commit+push the site repo separately after.
 - `capture-card.mjs` — regenerates the portfolio thumbnail (puppeteer-core borrowed from
   `~/projects/good-days-mobile-design/node_modules`; hides panel+header, label-aware refit, web only,
