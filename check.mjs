@@ -1,5 +1,10 @@
 import fs from 'fs';
-const html = fs.readFileSync(new URL('./ai-risk-atlas.html', import.meta.url), 'utf8');
+const candidates = ['./app.html', './ai-risk-atlas.html'];
+let html = null;
+for (const c of candidates) {
+  try { html = fs.readFileSync(new URL(c, import.meta.url), 'utf8'); break; } catch {}
+}
+if (!html) { console.error('no source file found (app.html / ai-risk-atlas.html)'); process.exit(1); }
 const m = html.match(/<script>([\s\S]*)<\/script>/);
 if (!m) { console.error('no script found'); process.exit(1); }
 let src = m[1];
