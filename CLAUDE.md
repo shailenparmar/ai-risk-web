@@ -70,9 +70,28 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
 4. Verification gotcha: Chrome extension screenshots fail on artifacts/minimized windows — test against
    localhost with javascript_tool DOM assertions instead. Beware stale tabs: always cache-bust (`?v=n`).
 
-## State as of 2026-07-05
+## State as of 2026-07-06
 
-Deployed site is MANY commits behind local: light theme, theme pages, nav history, matrix restyle,
-clickable theme tags, brand/Esc→web-view all exist only in app.html + localhost preview.
-Next session: get his final review sign-off, then build.sh + site commit + artifact republish +
-recapture card thumbnail (dark-theme thumbnail is stale vs light theme).
+FULLY DEPLOYED AND IN SYNC: app.html == site public/ai-risk-web/index.html == live == artifact.
+Light theme, theme pages, nav history (← BACK), bottom nav rows, matrix restyle, light thumbnail all shipped.
+
+**Accuracy audit (2026-07-06):** 11 parallel agents verified every source-attributed claim against the
+actual sources (~280 assertions). ~60 corrections applied. Notable fixes to KEEP (do not regress):
+- Carlsmith multiplies to ~5%; >10% is his later 2022 holistic revision (3 locations). Year is 2022.
+- Karnofsky quote is "we should be doing a double take..." — the earlier "sweating profusely" was FABRICATED.
+- Erdil's claim is ~20yr median to full automation of REMOTE WORK (not "the economy"); no diffusion/Narayanan
+  alliance (his s4 walk stop is 'takeoff', concept 'diffusion' is NOT sourced to s4); Moravec point is speed/cost.
+- Cotra in s6: back-loaded impacts + illegitimate-uses-not-gated; the substitution-vs-adoption argument was
+  fabricated. Bio-anchors framed as background "not the dialogue itself". s6 URL is issues/10.
+- MacAskill/Moorhouse: no severity rankings ("most serious/underrated/among the worst" all removed); "value
+  lock-in" not "premature lock-in"; century of TECHNOLOGICAL progress.
+- Aschenbrenner: The Project ≠ "nationalization" (he disclaims it); decade of ALGORITHMIC progress into a year.
+- Epoch s7: HBM is SK Hynix not TSMC; algorithmic-progress 3×/yr is Epoch's SEPARATE work; synthetic data is
+  the excluded speculative upside; latency wall 10⁵–10⁶× (interconnect, not light-speed).
+- Kulveit et al.: no "royalty" metaphor, no "welfare states" claim; concentration walk note reflects their
+  power-passes-to-AI-itself addition.
+- AI 2027: race ending = extinction; probes fire in BOTH endings (branch = the 6–4 vote); bounties past tense.
+- Welfare paper: authors "Long, Sebo, Butlin, et al."; predictive processing not IIT; acknowledge→assess→prepare.
+- Amodei: compression claim is biology/neuroscience only; courts/consensus/services not "journalism";
+  "neuroscientist by training", not computational.
+RULE: any NEW content claim about a source must be verified against the source before shipping.
