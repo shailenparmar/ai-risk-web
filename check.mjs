@@ -93,10 +93,16 @@ SOURCES.forEach(s => {
 nodes.forEach(n => { if (n.deg === 0) errs.push(`orphan node: ${n.id}`); });
 // layout sanity: finite positions after full sim
 nodes.forEach(n => { if (![n.x,n.y].every(Number.isFinite)) errs.push(`non-finite position: ${n.id}`); });
-// symmetric src<->concepts check
+// symmetric src<->concepts check: the two link directions must agree, or the
+// home legend "N sources" count (source.concepts) and the theme page "Readings
+// that anchor it" list (concept.src) will silently disagree.
 CONCEPTS.forEach(c => (c.src||[]).forEach(sid => {
   const s = SOURCES.find(x => x.id === sid);
-  if (s && !s.concepts.includes(c.id)) { /* one-directional is fine, link still built */ }
+  if (s && !s.concepts.includes(c.id)) errs.push(`asymmetric link: concept '${c.id}' lists src '${sid}', but source '${sid}' omits it from concepts`);
+}));
+SOURCES.forEach(s => s.concepts.forEach(cid => {
+  const c = byId[cid];
+  if (c && !(c.src||[]).includes(s.id)) errs.push(`asymmetric link: source '${s.id}' lists concept '${cid}', but concept '${cid}' omits it from src`);
 }));
 if (errs.length) { console.error('FAIL\n' + errs.join('\n')); process.exit(1); }
 console.log(`OK — ${nodes.length} nodes (${CONCEPTS.length} concepts + ${SOURCES.length} sources), ${links.length} links, all ids resolve, all positions finite`);
