@@ -4,8 +4,15 @@ Interactive concept map of 80,000 Hours' "11 essential resources on AI risk" (20
 67 concept briefings + 11 reading dossiers + 8 theme pages, ~290 links, all in ONE self-contained
 HTML file — no libraries, no build step, everything hand-rolled on canvas.
 
-**Live:** https://shailenparmar.com/airiskweb/ (old /ai-risk-web/ and /airisk/ 301-redirect here; airiskweb.com → here via Cloudflare)
-**Portfolio card:** 2nd project in `~/projects/shailenparmar.com/src/pages/Design.tsx`; thumbnail `public/design/ai-risk-web.png`
+**Live (canonical):** https://airiskweb.com — this is now the primary URL; portfolio card links here directly.
+  - Own standalone Cloudflare Worker (`wrangler.jsonc` in this repo, name `airiskweb`), deployed via `./deploy-domain.sh`.
+  - airiskweb.com is CURRENTLY still a 301 redirect (zone-level Cloudflare rule) into shailenparmar.com/airiskweb/ —
+    the redirect needs to be deleted and airiskweb.com attached as a Custom Domain to the `airiskweb` Worker
+    (Cloudflare dashboard → Workers & Pages → airiskweb → Settings → Domains & Routes → Add Custom Domain).
+    Requires manual dashboard action: the wrangler token only has zone:read, not DNS/zone write.
+  - Mirror also stays live at https://shailenparmar.com/airiskweb/ via `./build.sh` (old path, kept working).
+**Portfolio card:** 2nd project in `~/projects/shailenparmar.com/src/pages/Design.tsx`; thumbnail `public/design/ai-risk-web.png`;
+  links to https://airiskweb.com directly.
 
 ## Files here
 

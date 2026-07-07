@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 64" fill="#111" stroke="none">
+  <style>
+    @media (prefers-color-scheme: dark) {
+      svg { fill: #fff; }
+    }
+  </style>
+  <rect x="47.2" y="10" width="1.6" height="46" rx="0.8" />
+  <ellipse cx="48" cy="28" rx="38" ry="4.5" />
+  <ellipse cx="48" cy="50" rx="8" ry="2.4" />
+</svg>
