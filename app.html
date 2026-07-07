@@ -1189,10 +1189,9 @@ function navRowHTML(bottom){
 function selectTheme(k,push=true){
   if(push&&!walk&&k===selTheme&&!selectedId) return; // re-clicking the theme you're already on isn't a new nav
   if(walk) walk=null;
-  if(push) pushNav();
+  if(push){ pushNav(); pushHistLevel(); }
   selectedId=null; selTheme=k; hoverTheme=null; dirty=true;
   renderTheme(k);
-  armHistoryTrap();
   if(isMobile()&&panelCollapsed){ panelCollapsed=false; panelEl().classList.remove('collapsed'); }
   const cl=clusters[k];
   const avail=Math.min((isMobile()?W:W-PANEL_W-16),H)-170;
@@ -1221,10 +1220,9 @@ function renderTheme(k){
 }
 function select(id,push=true){
   if(push&&!walk&&id===selectedId) return; // re-clicking the concept you're already on isn't a new nav
-  if(push) pushNav();
+  if(push){ pushNav(); pushHistLevel(); }
   selectedId=id; selTheme=null; dirty=true;
   renderNode(id);
-  armHistoryTrap();
   if(isMobile()&&panelCollapsed){ panelCollapsed=false; panelEl().classList.remove('collapsed'); }
   const n=byId[id];
   if(view==='map'){
@@ -1296,9 +1294,9 @@ function backLabel(){ return walk ? '◀ EXIT WALK' : '◀ HOME'; }
 
 /* panel delegation: back, walk, read, walk-nav, theme filter, node chips */
 panel.addEventListener('click',e=>{
-  if(e.target.closest('[data-back-home]')){ if(walk) walk=null; goBack(); return; }
-  if(e.target.closest('[data-back-prev]')){ navBack(); return; }
-  if(e.target.closest('[data-back]')){ goBack(); return; }
+  if(e.target.closest('[data-back-home]')){ goHistBack(histDepth); return; }
+  if(e.target.closest('[data-back-prev]')){ goHistBack(1); return; }
+  if(e.target.closest('[data-back]')){ goHistBack(1); return; }
   const wb=e.target.closest('[data-walk]'); if(wb){ startWalk(wb.dataset.walk); return; }
   const tn=e.target.closest('[data-tnav]'); if(tn){ walkNav(+tn.dataset.tnav); return; }
   const lg=e.target.closest('.lg[data-t]');
@@ -1326,6 +1324,7 @@ let walk=null, walkIdx=0;
 function startWalk(sid){
   const stops=WALKS[sid]; if(!stops)return;
   walk={src:byId[sid], stops}; walkIdx=0; setView('map');
+  pushHistLevel(); // entering a walk is its own back-able step (a swipe/EXIT WALK returns to the source page)
   showWalkStop();
 }
 function showWalkStop(){
@@ -1358,7 +1357,7 @@ function injectNote(){
 function walkNav(d){
   if(!walk)return;
   const ni=walkIdx+d;
-  if(ni>=walk.stops.length){ doneWalks.add(walk.src.id); saveWalks(); endWalk(); return; }
+  if(ni>=walk.stops.length){ doneWalks.add(walk.src.id); saveWalks(); goHistBack(1); return; }
   if(ni<0)return;
   walkIdx=ni; showWalkStop();
 }
@@ -1484,26 +1483,25 @@ document.querySelectorAll('#mtable tbody[data-t]').forEach(tb=>{ if(THEMES[tb.da
 { const hc=document.querySelector('#mtable thead th.cname'); if(hc) hc.textContent=''; }
 showHome();
 
-/* ---------- trackpad/mouse "back" gesture: step through in-app nav before ever leaving the page ----------
-   Chrome's two-finger-swipe / mouse-back-button triggers browser history back, which would normally
-   navigate away entirely. We push one throwaway history entry whenever the user leaves home; a back
-   gesture pops it (popstate, same document, page never unloads), we take exactly one step back through
-   the app's own nav (mirrors clicking ◀ BACK / ◀ HOME), then re-arm a fresh entry if there's still
-   somewhere to go back to. Once you're truly home, the trap stays empty and the gesture leaves normally. */
-let trapArmed=false;
-function armHistoryTrap(){
-  if(trapArmed) return;
-  history.pushState({airiskTrap:true},'');
-  trapArmed=true;
+/* ---------- trackpad/mouse "back" gesture: walk through in-app nav before ever leaving the page ----------
+   Every genuine forward step (select/selectTheme with push=true, entering a walk) pushes ONE history
+   entry, so browser history depth always matches app nav depth exactly. A back gesture — even a fast
+   swipe that jumps several entries at once — always lands on one of OUR entries (same document, no
+   page unload); popstate tells us how many levels it moved, and we replay exactly that many single-step
+   "back" actions (the same ones ◀ BACK / ◀ HOME / EXIT WALK already do) to catch up. Buttons route through
+   the identical history.go() path, so clicks and gestures can never fall out of sync with each other. */
+let histDepth=0;
+function pushHistLevel(){ histDepth++; history.pushState({d:histDepth},''); }
+function goHistBack(steps){ if(steps>0) history.go(-Math.min(steps,histDepth)); }
+function unwindOneLevel(){
+  if(navStack.length) navBack();                    // one level up, same as ◀ BACK
+  else if(walk||selectedId||selTheme) goBack();      // reach home (or exit a walk), same as ◀ HOME
 }
-function popTrapStep(){
-  if(navStack.length){ navBack(); return true; }             // mirrors ◀ BACK: one level up
-  if(walk||selectedId||selTheme){ goBack(); return true; }    // mirrors ◀ HOME (or exits a walk)
-  return false;                                               // already home: let the gesture leave
-}
-addEventListener('popstate',()=>{
-  trapArmed=false;
-  if(popTrapStep()) armHistoryTrap();
+addEventListener('popstate',e=>{
+  const newD=(e.state&&typeof e.state.d==='number')?e.state.d:0;
+  const steps=Math.max(0,histDepth-newD);
+  histDepth=newD;
+  for(let i=0;i<steps;i++) unwindOneLevel();
 });
 </script>
 
