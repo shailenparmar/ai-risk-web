@@ -4,14 +4,17 @@ Interactive concept map of 80,000 Hours' "11 essential resources on AI risk" (20
 67 concept briefings + 11 reading dossiers + 8 theme pages, ~290 links, all in ONE self-contained
 HTML file — no libraries, no build step, everything hand-rolled on canvas.
 
-**Live (canonical):** https://airiskweb.com — the primary URL, serves directly (no redirect), URL stays put.
-  Portfolio card links here directly. www.airiskweb.com also works.
+**Live (canonical — SINGLE source of truth):** https://airiskweb.com — the primary URL, serves directly
+  (no redirect), URL stays put. Portfolio card links here directly. www.airiskweb.com also works.
   - Own standalone Cloudflare Worker (`wrangler.jsonc` in this repo, name `airiskweb`), deployed via `./deploy-domain.sh`.
+  - **ONE deploy, always:** `./deploy-domain.sh`. There is no longer a copied "mirror" anywhere.
   - DNS: attached via a zone-level Workers Route (`airiskweb.com/*` → `airiskweb` Worker); the old 301 redirect
     rule was deleted (2026-07-07, manual dashboard action — the wrangler token only has zone:read, not DNS write,
     so this step can't be automated).
-  - Mirror also stays live at https://shailenparmar.com/airiskweb/ via `./build.sh` (old path, kept working).
-  - EVERY DEPLOY NEEDS BOTH: `./build.sh` (shailenparmar.com mirror) AND `./deploy-domain.sh` (airiskweb.com canonical).
+  - **Legacy shailenparmar.com paths now 301-redirect here** (2026-07-07): `/airiskweb/*`, `/airisk*`, and
+    `/ai-risk-web*` → `https://airiskweb.com/`, via `public/_redirects` in the shailenparmar.com repo. The old
+    duplicate copy (`public/airiskweb/index.html`) was DELETED. `build.sh` here is RETIRED (stub that errors out) —
+    do NOT recreate the mirror. Editing the app never touches the shailenparmar.com repo now.
 **Portfolio card:** 2nd project in `~/projects/shailenparmar.com/src/pages/Design.tsx`; thumbnail `public/design/ai-risk-web.png`;
   links to https://airiskweb.com directly.
 
@@ -22,8 +25,7 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
   walks 5+ stops with 30+ char notes, walk stops must be among the source's concepts, no orphan nodes.
   RUN AFTER EVERY DATA EDIT.
 - `preview.sh` — wraps app.html + serves http://localhost:8931/local-test.html for review.
-- `build.sh` — wraps app.html → `shailenparmar.com/public/airiskweb/index.html`, `npm run build`,
-  `npx wrangler deploy`. Commit+push the site repo separately after.
+- `build.sh` — RETIRED 2026-07-07 (now a stub that errors). The mirror is gone; use `./deploy-domain.sh`.
 - `capture-card.mjs` — regenerates the portfolio thumbnail (puppeteer-core borrowed from
   `~/projects/good-days-mobile-design/node_modules`; hides panel+header, label-aware refit, web only,
   NO cursor/hover state). Needs preview server running.
@@ -86,8 +88,9 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
 ## Workflow
 
 1. Edit `app.html` → `node check.mjs` → `./preview.sh` → user reviews at localhost:8931.
-2. On his "push": `./build.sh`, then in `~/projects/shailenparmar.com`:
-   `git add -A && git commit && git push`.
+2. On his "push": `./deploy-domain.sh` (that's it — airiskweb.com is the only copy), then `git add -A &&
+   git commit && git push` in THIS repo. The shailenparmar.com repo is only touched if you change the
+   redirects/portfolio, not for app edits.
 3. Artifact mirror (dev history): republish to
    https://claude.ai/code/artifact/043ebb40-e1ce-450c-8ff1-0aa9678a28c7 via the Artifact tool with `url` param.
 4. Verification gotcha: Chrome extension screenshots fail on artifacts/minimized windows — test against
