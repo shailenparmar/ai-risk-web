@@ -111,6 +111,14 @@
   .lg.off{opacity:.3;filter:saturate(.4)}
   .lg .n{margin-left:auto;padding-left:10px;font-size:9.5px;white-space:nowrap}
 
+  /* home: footer credit line */
+  #homeFooter{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:flex;
+    align-items:baseline;justify-content:space-between;font-family:var(--f-mono);font-size:10.5px;
+    color:var(--faint);letter-spacing:.03em}
+  #homeFooter a{color:inherit;text-decoration:none;border-bottom:1px solid transparent}
+  #homeFooter a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+  #homeFooter .dot{margin:0 6px;color:var(--faint)}
+
   /* walk */
   .walkBtn{display:block;width:100%;text-align:center;background:rgba(59,99,196,.06);border:1px solid rgba(59,99,196,.4);
     border-radius:8px;color:var(--accent);font-family:var(--f-mono);font-size:11px;font-weight:700;letter-spacing:.08em;
@@ -1123,7 +1131,10 @@ function showHome(){
         const srcN=SOURCES.filter(s=>s.concepts.some(cid=>byId[cid]&&byId[cid].t===k)).length;
         return `<div class="lg${themeOn[k]?'':' off'}" data-t="${k}" style="${tintStyle(t.color)}">${t.name}<span class="n" style="color:inherit;opacity:.65">${count} concepts · ${srcN} sources</span></div>`;}).join('')}
     </div>
-    <a class="plink" style="display:inline-block;margin-top:16px;font-size:12.5px" href="https://shailenparmar.com/connect" target="_blank" rel="noopener">Get in touch ↗</a>
+    <div id="homeFooter">
+      <span><a href="https://shailenparmar.com" target="_blank" rel="noopener">Shailen Parmar</a> 2026</span>
+      <span><a href="https://github.com/shailenparmar/ai-risk-web" target="_blank" rel="noopener">github</a><span class="dot">·</span><a href="https://shailenparmar.com/connect" target="_blank" rel="noopener">contact</a></span>
+    </div>
    </div>`;
   homeShown=true;
 }
