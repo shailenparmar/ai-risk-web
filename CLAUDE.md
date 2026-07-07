@@ -4,13 +4,14 @@ Interactive concept map of 80,000 Hours' "11 essential resources on AI risk" (20
 67 concept briefings + 11 reading dossiers + 8 theme pages, ~290 links, all in ONE self-contained
 HTML file — no libraries, no build step, everything hand-rolled on canvas.
 
-**Live (canonical):** https://airiskweb.com — this is now the primary URL; portfolio card links here directly.
+**Live (canonical):** https://airiskweb.com — the primary URL, serves directly (no redirect), URL stays put.
+  Portfolio card links here directly. www.airiskweb.com also works.
   - Own standalone Cloudflare Worker (`wrangler.jsonc` in this repo, name `airiskweb`), deployed via `./deploy-domain.sh`.
-  - airiskweb.com is CURRENTLY still a 301 redirect (zone-level Cloudflare rule) into shailenparmar.com/airiskweb/ —
-    the redirect needs to be deleted and airiskweb.com attached as a Custom Domain to the `airiskweb` Worker
-    (Cloudflare dashboard → Workers & Pages → airiskweb → Settings → Domains & Routes → Add Custom Domain).
-    Requires manual dashboard action: the wrangler token only has zone:read, not DNS/zone write.
+  - DNS: attached via a zone-level Workers Route (`airiskweb.com/*` → `airiskweb` Worker); the old 301 redirect
+    rule was deleted (2026-07-07, manual dashboard action — the wrangler token only has zone:read, not DNS write,
+    so this step can't be automated).
   - Mirror also stays live at https://shailenparmar.com/airiskweb/ via `./build.sh` (old path, kept working).
+  - EVERY DEPLOY NEEDS BOTH: `./build.sh` (shailenparmar.com mirror) AND `./deploy-domain.sh` (airiskweb.com canonical).
 **Portfolio card:** 2nd project in `~/projects/shailenparmar.com/src/pages/Design.tsx`; thumbnail `public/design/ai-risk-web.png`;
   links to https://airiskweb.com directly.
 
