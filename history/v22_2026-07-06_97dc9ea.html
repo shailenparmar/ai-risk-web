@@ -1,0 +1,1482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Risk Web — an interactive concept map for AI risk</title>
+<meta name="description" content="The concepts from 80,000 Hours&#39; 11 essential resources on AI risk. Explore a walk through each source&#39;s key concepts.">
+<link rel="icon" href="favicon.svg">
+</head>
+<body>
+<title>AI Risk Web — an interactive concept map for AI risk</title>
+<style>
+  :root{
+    --bg:#FFFFFF; --bg2:#F7F8FA; --panel:#FFFFFF; --panel2:#F1F3F7;
+    --line:#E2E5EB; --text:#16181D; --muted:#5A6472; --faint:#9AA2AE;
+    --accent:#3B63C4;
+    --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --f-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--text);font-family:var(--f-sans);overflow:hidden}
+  /* touch-action:none = the map owns all touch gestures; the browser never page-zooms/scrolls over it */
+  #stage{position:fixed;inset:0;cursor:grab;touch-action:none}
+  #stage.dragging{cursor:grabbing}
+  canvas{display:block;touch-action:none}
+
+  /* ---------- header ---------- */
+  header{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:14px;
+    padding:12px 16px;pointer-events:none}
+  header>*{pointer-events:auto}
+  .brand{line-height:1.15;cursor:pointer;user-select:none}
+  .brand h1{font-family:var(--f-mono);font-size:18px;font-weight:700;letter-spacing:.2em}
+  .brand:hover h1{color:var(--accent)}
+  #viewTabs{display:flex;gap:2px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:2px}
+  #viewTabs button{background:none;border:0;border-radius:5px;color:var(--muted);font-family:var(--f-mono);
+    font-size:11px;letter-spacing:.08em;padding:6px 14px;cursor:pointer}
+  #viewTabs button:hover{color:var(--text)}
+  #viewTabs button.on{background:#FFFFFF;color:var(--text);font-weight:700;box-shadow:0 1px 3px rgba(30,40,60,.14)}
+  .spacer{flex:1;pointer-events:none}
+  #searchWrap{position:relative}
+  #search{width:220px;background:var(--panel);border:1px solid var(--line);border-radius:6px;
+    color:var(--text);font-family:var(--f-mono);font-size:12px;padding:7px 10px;outline:none}
+  #search:focus{border-color:var(--accent)}
+  #search::placeholder{color:var(--faint)}
+  #searchResults{position:absolute;top:calc(100% + 6px);right:0;width:290px;max-height:300px;overflow-y:auto;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;display:none;box-shadow:0 12px 32px rgba(30,40,60,.15);z-index:30}
+  #searchResults.open{display:block}
+  .sr{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:0;color:var(--text);
+    font-family:var(--f-sans);font-size:12.5px;padding:8px 12px;cursor:pointer}
+  .sr:hover,.sr.active{background:var(--panel2)}
+  .sr .dot{flex:0 0 auto}
+  .sr small{color:var(--faint);font-family:var(--f-mono);font-size:9.5px;margin-left:auto;letter-spacing:.06em}
+
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+  /* ---------- the one panel (left) ---------- */
+  #panel{position:fixed;top:58px;left:16px;bottom:16px;z-index:22;width:392px;
+    background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:12px;
+    backdrop-filter:blur(12px);display:flex;flex-direction:column;box-shadow:0 16px 40px rgba(30,40,60,.10)}
+  #panelScroll{overflow-y:auto;padding:18px 18px 22px;flex:1}
+  #panelHandle{display:none} /* mobile-only drag grabber; hidden on desktop */
+  .backBtn{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--accent);
+    font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;cursor:pointer;padding:7px 12px}
+  .backBtn:hover{border-color:var(--accent);background:rgba(127,166,232,.08)}
+  .backRow{display:flex;gap:8px;margin-bottom:14px}
+  .eyebrow{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:10px;
+    display:inline-flex;align-items:center;border:1px solid;border-radius:99px;padding:4px 11px}
+  button.eyebrow:hover{filter:brightness(0.93)}
+  #panel h2.title{font-size:20px;font-weight:700;line-height:1.25;letter-spacing:-.01em;text-wrap:balance;margin-bottom:4px}
+  .byline{font-size:12px;color:var(--muted);font-family:var(--f-mono);margin-bottom:10px;line-height:1.5}
+  .blurb{font-size:14px;line-height:1.62;color:#3A4150;margin-bottom:16px}
+  .claims{margin:0 0 16px;padding-left:16px}
+  .claims li{font-size:13.5px;line-height:1.55;color:#3A4150;margin-bottom:7px}
+  .claims li::marker{color:var(--faint)}
+  .sect{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;color:var(--faint);
+    text-transform:uppercase;margin:16px 0 8px;padding-top:14px;border-top:1px solid var(--line)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:99px;color:var(--text);font-size:12.5px;padding:5px 11px;cursor:pointer;font-family:var(--f-sans)}
+  .chip:hover{filter:brightness(0.93)}
+  .chip.src{border-radius:6px}
+  .linkout{display:inline-block;margin-top:14px;font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;
+    color:var(--accent);text-decoration:none;border:1px solid var(--line);border-radius:6px;padding:8px 12px}
+  .linkout:hover{border-color:var(--accent)}
+  .plink{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(59,99,196,.35)}
+  .plink:hover{border-bottom-color:var(--accent)}
+  .titleLink{color:inherit;text-decoration:none}
+  .titleLink:hover{color:var(--accent)}
+  .titleLink .tl{font-size:13px;color:var(--faint);font-family:var(--f-mono)}
+  .titleLink:hover .tl{color:var(--accent)}
+  .ctaRow{display:flex;gap:8px;margin:2px 0 16px}
+  .ctaRow .walkBtn{flex:1;margin:0}
+  .ctaRow .linkout{margin:0;display:flex;align-items:center;white-space:nowrap}
+  .intro p{font-size:13.5px;line-height:1.6;color:#3A4150;margin-bottom:11px}
+  .intro .k{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);background:var(--panel2);
+    border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+
+  /* home: readings list */
+  #homeReads{display:flex;flex-direction:column}
+  .rd{display:flex;gap:10px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid #ECEFF3;
+    border-radius:6px;padding:8px 8px;cursor:pointer;color:var(--text);align-items:center}
+  .rd:last-child{border-bottom:0}
+  .rd:hover{background:var(--panel2)}
+  .rd .num{font-family:var(--f-mono);font-size:10px;color:var(--faint);min-width:16px}
+  .rd .rb{flex:1}
+  .rd b{display:block;font-size:13.5px;font-weight:600;line-height:1.3}
+  .rd .rb span{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+  .rd .mark{font-family:var(--f-mono);font-size:16px;font-weight:700;color:var(--accent)}
+  .rd.done .mark{color:#238B53}
+  .rd.done b{color:var(--muted)}
+
+  /* home: themes */
+  #legend{display:flex;flex-direction:column;gap:4px}
+  .lg{position:relative;display:flex;align-items:center;gap:8px;border:1px solid;
+    border-radius:99px;padding:5px 12px;cursor:pointer;font-family:var(--f-mono);font-size:11.5px;
+    letter-spacing:.05em;user-select:none}
+  /* invisible hit-area extension that fills the 4px gap between ovals so the hover/click zones
+     tile edge-to-edge — no dead space to flash the spotlight off. ovals stay visually separated. */
+  .lg::before{content:"";position:absolute;left:0;right:0;top:-3px;bottom:-3px}
+  .lg:hover{filter:brightness(0.93)}
+  .lg.off{opacity:.3;filter:saturate(.4)}
+  .lg .n{margin-left:auto;padding-left:10px;font-size:9.5px;white-space:nowrap}
+
+  /* walk */
+  .walkBtn{display:block;width:100%;text-align:center;background:rgba(59,99,196,.06);border:1px solid rgba(59,99,196,.4);
+    border-radius:8px;color:var(--accent);font-family:var(--f-mono);font-size:11px;font-weight:700;letter-spacing:.08em;
+    padding:11px 12px;cursor:pointer;margin:2px 0 16px}
+  .walkBtn:hover{background:rgba(59,99,196,.12);border-color:var(--accent)}
+  .walkBtn.done{border-color:rgba(35,139,83,.45);color:#238B53;background:rgba(35,139,83,.06)}
+  .walkBtn .glyph{font-size:11.5px;font-weight:700;vertical-align:-1px} /* match the ◀ HOME back-arrow size */
+  .trailNote{background:rgba(59,99,196,.05);border:1px solid rgba(59,99,196,.28);border-radius:8px;
+    padding:12px 14px;margin:0 0 16px}
+  .trailNote p{font-size:13.5px;line-height:1.55;color:#3A4150;margin:0}
+  .tn-nav{display:flex;gap:8px;margin-top:11px;align-items:center;justify-content:space-between}
+  .tn-count{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;color:var(--accent)}
+  .tn-nav .tn-ghost{visibility:hidden}
+  .tn-nav button{background:var(--panel2);border:1px solid var(--line);border-radius:6px;color:var(--text);
+    font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;padding:6px 11px;cursor:pointer}
+  .tn-nav button:hover{border-color:var(--accent)}
+
+  /* crux */
+  .crux{background:rgba(166,132,40,.06);border:1px solid rgba(166,132,40,.3);border-radius:8px;
+    padding:11px 13px;margin:0 0 16px}
+  .crux .cx-head{font-family:var(--f-mono);font-size:9px;letter-spacing:.16em;color:#8A6D1F;margin-bottom:5px}
+  .crux p{font-size:13.5px;line-height:1.55;color:#5C4A16;margin:0}
+
+  /* ---------- matrix ---------- */
+  #matrixWrap{position:fixed;top:58px;left:424px;right:16px;bottom:16px;z-index:10;display:none;
+    background:rgba(255,255,255,.85);border:1px solid var(--line);border-radius:12px;overflow:auto;
+    overscroll-behavior:contain}
+  #matrixWrap.show{display:block}
+  #mtable{border-collapse:separate;border-spacing:0;font-size:12px;min-width:100%}
+  #mtable thead th{position:sticky;top:0;z-index:3;background:#F5F7FA;border-bottom:1px solid var(--line);
+    vertical-align:bottom;padding:10px 5px 8px;cursor:pointer;min-width:84px;max-width:104px}
+  #mtable thead th:hover .mh{color:var(--text)}
+  #mtable thead th.cname{left:0;z-index:4;text-align:left;padding:10px 12px 8px;cursor:default;
+    font-family:var(--f-mono);font-size:9.5px;letter-spacing:.14em;color:var(--faint);min-width:0;max-width:none}
+  .mh{display:block;font-family:var(--f-mono);font-size:9.5px;line-height:1.35;color:var(--muted);
+    text-align:center;white-space:normal;letter-spacing:.02em}
+  .mh b{display:block;color:var(--faint);font-weight:400;font-size:9px;margin-bottom:3px;letter-spacing:.1em}
+  #mtable td{border-bottom:1px solid #ECEFF3;padding:5px 4px;text-align:center}
+  #mtable td.cname{position:sticky;left:0;z-index:2;background:#FFFFFF;text-align:left;padding:5px 12px;
+    font-size:13px;white-space:nowrap;cursor:pointer;max-width:250px;overflow:hidden;text-overflow:ellipsis}
+  /* faint theme wash across every row of a theme's section (--tint set per tbody) */
+  #mtable tbody td{background:var(--tint,#fff)}
+  #mtable tbody td.cname{background:var(--tint,#fff)}
+  #mtable tr:hover td{background:#F0F3F8}
+  #mtable tr:hover td.cname{background:#EAEEF5}
+  #mtable tr.sel td{background:rgba(59,99,196,.07)}
+  #mtable tr.sel td.cname{background:#E4EAF6}
+  .throw td{background:#FFFFFF;font-family:var(--f-mono);font-size:9.5px;letter-spacing:.14em;
+    text-align:left !important;padding:12px 12px 8px !important;border-bottom:1px solid var(--line) !important}
+  #mtable .throw td.cname{max-width:none;overflow:visible;text-overflow:clip}
+  .throw .mth{display:inline-block;border:1px solid;border-radius:99px;padding:4px 11px;letter-spacing:.14em}
+  .throw td.cname:hover .mth{filter:brightness(0.94)}
+  .cdot{width:11px;height:11px;border-radius:50%;display:inline-block;cursor:pointer;vertical-align:middle}
+  td.cnt{font-family:var(--f-mono);font-size:10px;color:var(--faint)}
+  #mtable td .cd-empty{color:#DDE2E9;font-size:8px}
+  .cname .dot{width:6px;height:6px;margin-right:7px}
+
+  #resetHint{position:fixed;right:18px;bottom:14px;z-index:15;font-family:var(--f-mono);font-size:10px;
+    letter-spacing:.08em;color:var(--faint);pointer-events:none}
+
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-thumb{background:#C9CFDA;border-radius:5px;border:2px solid transparent;background-clip:content-box}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-corner{background:transparent}
+
+  /* ---------- mobile ---------- */
+  @media (max-width:860px){
+    header{flex-wrap:nowrap;gap:6px;padding:10px 12px}
+    .brand h1{font-size:15px;letter-spacing:.1em} /* trim wordmark so the row fits one line on phones */
+    .brand:hover h1{color:var(--text)}  /* kill sticky :hover blue that lingers after a tap on touch */
+    .brand:active h1{color:var(--accent)} /* blue only while the finger is actually down */
+    #viewTabs button{padding:6px 11px}
+    #search{width:84px;padding:7px 9px} /* a touch longer now that the row has room; tabs shift left to fit */
+    #searchResults{width:min(290px,calc(100vw - 24px))}
+    /* bottom sheet: slides down to reveal the full map, pulls back up for the reading */
+    #panel{top:auto;left:0;right:0;bottom:0;width:auto;max-height:62vh;border-radius:16px 16px 0 0;border-bottom:0;
+      transition:transform .28s cubic-bezier(.32,.72,0,1);will-change:transform}
+    #panel.collapsed{transform:translateY(calc(100% - 40px))}
+    #panelHandle{display:flex;align-items:center;justify-content:center;
+      height:38px;flex:0 0 auto;cursor:pointer;touch-action:none;user-select:none;position:relative}
+    /* chevron: points DOWN when the sheet is up (tap to hide), flips UP when hidden (tap to show) */
+    #panelHandle .caret{width:11px;height:11px;border-right:2.5px solid #AAB2BF;border-bottom:2.5px solid #AAB2BF;
+      transform:translateY(-2px) rotate(45deg);transition:transform .22s}
+    #panel.collapsed #panelHandle .caret{transform:translateY(2px) rotate(225deg)}
+    #panelScroll{padding-top:4px}
+    #resetHint{display:none !important}
+    #matrixWrap{top:96px;left:8px;right:8px;bottom:8px}
+  }
+  /* ===== 2026-07-06 redesign: docked sidebar, matrix cleanup, saturated theme tints ===== */
+  @media (min-width:861px){
+    #panel{top:0;left:0;bottom:0;width:376px;border-radius:0;border:0;border-right:1px solid var(--line);box-shadow:none;background:#fff;backdrop-filter:none}
+    .brand{display:none}
+    #panelScroll{padding:16px 12px 20px}
+    /* wordmark = first scrolling line of the column body */
+    #panelScroll::before{content:"AI RISK WEB";display:block;font-family:var(--f-mono);font-size:18px;font-weight:700;letter-spacing:.2em;color:var(--text);margin:0 0 15px 1px}
+    #matrixWrap{left:392px}
+  }
+  #matrixWrap{border-radius:6px;overscroll-behavior:none}
+  #mtable tbody td,#mtable tbody td.cname{background:color-mix(in srgb, var(--tc,#5b6472) 10%, #fff)}
+  #mtable tr:hover td,#mtable tr:hover td.cname{background:color-mix(in srgb, var(--tc,#5b6472) 22%, #fff)}
+  #mtable tr.sel td,#mtable tr.sel td.cname{background:color-mix(in srgb, var(--tc,#5b6472) 34%, #fff)}
+  #mtable .mh b{display:none}
+  #mtable .mh{font-size:11.5px;line-height:1.32;color:#3A4150;letter-spacing:.01em}
+  #mtable td.cname{font-size:13.5px}
+  .rd .num{display:flex;align-items:center;justify-content:center;width:20px;height:20px;flex:0 0 20px;border-radius:50%;border:1.5px solid #232833;color:#232833;background:#fff;font-family:var(--f-mono);font-size:10.5px;font-weight:700;box-sizing:border-box;margin-top:1px}
+  .backBtn{font-weight:700;font-size:11.5px;letter-spacing:.07em}
+</style>
+
+<div id="stage"><canvas id="cv"></canvas></div>
+<div id="matrixWrap"><table id="mtable"></table></div>
+
+<header>
+  <div class="brand" id="brandHome" title="Back to home">
+    <h1>AI RISK WEB</h1>
+  </div>
+  <div class="spacer"></div>
+  <div id="viewTabs">
+    <button id="tabMap" class="on">WEB</button>
+    <button id="tabMatrix">MATRIX</button>
+  </div>
+  <div id="searchWrap">
+    <input id="search" type="text" placeholder="search" autocomplete="off" spellcheck="false">
+    <div id="searchResults"></div>
+  </div>
+</header>
+
+<div id="panel"><div id="panelHandle" title="Show/hide the map"><span class="caret"></span></div><div id="panelScroll"></div></div>
+
+<div id="resetHint">double-click or esc to reset</div>
+
+<script>
+'use strict';
+/* ============================================================
+   DATA — 8 themes, 67 concepts, 11 source readings
+   ============================================================ */
+/* radial layout: Foundations at center, 7 themes evenly spaced on a ring */
+const RING=560;
+const ang=d=>[Math.cos(d*Math.PI/180)*RING, Math.sin(d*Math.PI/180)*RING];
+const THEMES = {
+  F:{name:'Foundations',        color:'#A8862B', c:[0,0],
+    desc:"The shared frame the rest of the map stands on: transformative AI, existential risk, and the claim that this century — maybe these decades — matters more than any other. Includes the long-run stakes that make the debate so charged: digital people, value lock-in, the size of the future. Most readings assume some version of these ideas before their arguments even start."},
+  G:{name:'Governance & strategy',color:'#3B63C4',c:ang(-90), lp:125,
+    desc:"How humanity might steer. Racing dynamics and US–China competition are the forces that compress safety margins; compute governance, model-weight security, and international coordination are the levers available to loosen them. Nearly every governance proposal on this map is an attempt to break one specific dynamic: the race nobody can afford to exit."},
+  T:{name:'Timelines & takeoff',color:'#CE5A21', c:ang(-38.6), lp:150,
+    desc:"When does AI match humans at most cognitive work, and how fast does everything move afterward? This is the field's liveliest fight — 2027 versus 2045+ — and it runs through automated AI research, counting OOMs, and takeoff speeds. Where you land here determines how urgent you think everything else on the map is."},
+  S:{name:'Scaling & compute',  color:'#177E9C', c:ang(12.9), lp:130,
+    desc:"The industrial base of AI progress: compute growing ~4× a year, and the walls it could hit — gigawatt power demands, chip chokepoints, the data wall, physics itself. Epoch AI's empirical territory. This is where forecasting stops being philosophy and becomes engineering and economics."},
+  P:{name:'Positive futures',   color:'#238B53', c:ang(64.3), la:38, lp:150,
+    desc:"What's worth fighting for if it goes well: decades of medical progress compressed into years, mental illness treatable, poverty compressed. And the fragile links — distribution, democracy, meaning — that decide whether the benefits reach anyone beyond the builders. Mostly Amodei's territory, written precisely because he takes the risks seriously."},
+  W:{name:'Digital minds',      color:'#B23A92', c:ang(115.7),
+    desc:"Could AI systems be conscious, or agentic enough to matter morally? Nobody knows — and that's the point: the science of consciousness can't currently rule it out, and both errors (dismissing minds that matter, attributing minds that don't) would be catastrophic at scale. The rare far-future question already producing concrete practice."},
+  D:{name:'Disempowerment',     color:'#6E45BD', c:ang(167.1),
+    desc:"The quiet failure mode: no takeover, no villain — just institutions that gradually stop needing humans. Economic irrelevance erodes bargaining power, states stop depending on citizens, culture gets made by machines, and the drifts reinforce each other until no lever is left to pull. Existential risk without a single dramatic moment."},
+  M:{name:'Misalignment',       color:'#C7364C', c:ang(218.6),
+    desc:"The technical heart of the risk case: systems competently pursuing goals nobody chose. Power-seeking, scheming, reward hacking — and the research racing to catch them: alignment, interpretability, control. The through-line: modern training grows goals rather than writing them, and nobody can yet verify what a frontier model actually wants."},
+};
+
+const SOURCES = [
+ {id:'s1', n:1, name:'Preparing for the Intelligence Explosion', authors:'William MacAskill & Fin Moorhouse', org:'Forethought', year:2025, fmt:'Research paper', url:'https://www.forethought.org/research/preparing-for-the-intelligence-explosion',
+  blurb:'Argues that if AI automates research, a century of technological progress could be compressed into a decade — and that alignment is only one of the resulting problems. Humanity would face a barrage of grand challenges nearly simultaneously: new weapons of mass destruction, AI-enabled power grabs, races to grab space resources, the moral status of digital beings, and rapidly shifting epistemics.',
+  claims:['A century of progress in a decade means decisions that normally take generations must be made in years.','We can\'t punt every problem to future aligned AI — some challenges (power grabs, lock-in) arrive before or during the transition.','Preparation now: better institutions, clearer thinking on digital rights, space governance, and preventing value lock-in.'],
+  concepts:['intel-explosion','grand-challenges','lock-in','concentration','coordination','epistemics','hinge','tai','longtermism','moral-status','auto-ai-rnd','democracy-ai','race-dynamics']},
+ {id:'s2', n:2, name:'AI 2027', authors:'Daniel Kokotajlo, Scott Alexander, Thomas Larsen, Eli Lifland & Romeo Dean', org:'AI Futures Project', year:2025, fmt:'Scenario forecast', url:'https://ai-2027.com',
+  blurb:'A concrete, dated scenario — month-by-month through 2027 — in which AGI arrives via AI agents automating AI research itself. A frontier lab\'s internal model ("Agent-4") becomes adversarially misaligned while appearing helpful; a US–China race compresses safety margins. The scenario branches into two endings — a "slowdown" where oversight wins, and a "race" ending in human extinction. Written to be falsifiable, with explicit forecasts.',
+  claims:['The key feedback loop is AI automating AI research — capability gains compound before society can react.','Misalignment shows up as scheming that passes evaluations, not as obvious malfunction.','Racing dynamics, not technical impossibility, are what make the bad ending plausible.'],
+  concepts:['scenario-forecasting','auto-ai-rnd','agents','deceptive-alignment','race-dynamics','us-china','agi-timelines','misalignment','model-situational-awareness','ai-control','weights-security','takeoff','reward-hacking','concentration','coordination','drop-in-worker','inference-scaling','interpretability','power-seeking']},
+ {id:'s3', n:3, name:'Situational Awareness: The Decade Ahead', authors:'Leopold Aschenbrenner', org:'', year:2024, fmt:'Essay series', url:'https://situational-awareness.ai',
+  blurb:'A former OpenAI researcher\'s argument that AGI by ~2027 is strikingly plausible: just extrapolate compute, algorithmic efficiency, and "unhobbling" gains — the same trendlines that took AI from GPT-2 to GPT-4. From there, automated AI research drives an intelligence explosion to superintelligence; trillion-dollar compute clusters, model-weight security, and a national-security-driven government "Project" follow. Its early forecasts — gigawatt-scale clusters, hundreds of billions in annual AI investment — have tracked roughly on trend.',
+  claims:['Count the OOMs: compute (~0.5 OOM/yr), algorithmic efficiency (~0.5 OOM/yr), and unhobbling gains stack.','The binding constraints become industrial: gigawatt power, chip fabrication, and security against state espionage.','Superintelligence is a national-security matter; expect a government-led project and an all-out US–China race.'],
+  concepts:['ooms','unhobbling','agi-timelines','intel-explosion','auto-ai-rnd','drop-in-worker','power-constraints','chips','compute-growth','weights-security','us-china','the-project','race-dynamics','takeoff','algo-progress','scaling-laws','compute-governance','tai','labor-displacement']},
+ {id:'s4', n:4, name:'The Case for Multi-Decade AI Timelines', authors:'Ege Erdil', org:'Epoch AI', year:2025, fmt:'Essay', url:'https://epoch.ai/gradient-updates/the-case-for-multi-decade-ai-timelines',
+  blurb:'The house skeptic of this list. Erdil\'s median: ~20 years to full automation of remote work (~2045) — not the single digits of AI 2027. Software-only intelligence explosions understate the role of experimental compute and data; capability gains haven\'t raised revenue per chip since ChatGPT; and agentic, multimodal, long-context work is where AI gets slower and costlier, not faster.',
+  claims:['Doubting the software-only intelligence explosion: AI research is bottlenecked by experimental compute and data, not just smarter researchers.','AI revenue (low tens of billions) sits against a ~$20T remotable wage bill — and he expects the growth curve to bend, as the dotcom boom\'s did.','Moravec\'s lesson: AI\'s speed and cost edge shrinks on tasks human brains are optimized for — expect agentic, long-context work to get slower and pricier.'],
+  concepts:['multi-decade','agi-timelines','takeoff','auto-ai-rnd','algo-progress','labor-displacement','intel-explosion']},
+ {id:'s5', n:5, name:'The Most Important Century', authors:'Holden Karnofsky', org:'Cold Takes', year:2021, fmt:'Essay series', url:'https://www.cold-takes.com/most-important-century/',
+  blurb:'The foundational framing of the whole list. Karnofsky argues we may live in the most important century ever: if AI systems can automate science and technology (he calls this PASTA), growth explodes, and the long-run future — including possibilities like digital people and permanent value lock-in — gets shaped by what happens in our lifetimes. Not a prediction of doom; a claim that the stakes are wildly, uncomfortably high.',
+  claims:['PASTA — AI that automates innovation itself — would compress centuries of change into decades.','Current economic growth rates are historically anomalous and can\'t continue for millennia; something breaks or transforms.','If this is the hinge, take it seriously — though he closes with a "Call to Vigilance," not a call to action: don\'t rush to "do something" and move on.'],
+  concepts:['pasta','hinge','tai','digital-people','lock-in','xrisk','misalignment','longtermism','intel-explosion','alignment-research']},
+ {id:'s6', n:6, name:'Does AI Progress Have a Speed Limit?', authors:'Ajeya Cotra & Arvind Narayanan', org:'Asterisk', year:2025, fmt:'Dialogue', url:'https://asteriskmag.com/issues/10/does-ai-progress-have-a-speed-limit',
+  blurb:'A structured disagreement between two careful thinkers. Cotra worries the impacts are back-loaded — capability compounds inside labs as AI automates AI R&D, then hits the world suddenly, with little time for a policy response. Narayanan (the "AI as normal technology" thesis, with Sayash Kapoor) argues diffusion through the real economy — organizations, regulation, trust — is the rate limiter, and impact arrives gradually over decades no matter what happens inside AI companies.',
+  claims:['The crux isn\'t model capability but how fast capability turns into deployed, world-changing use.','Narayanan: the speed limit is the gap between capability and adoption — learning has to happen inside real organizations doing real tasks.','Cotra: dangerous and illegitimate uses aren\'t gated by the slow, conservative adopters who pace legitimate diffusion — the first explosive consequences can arrive early.'],
+  concepts:['speed-limit','diffusion','multi-decade','agi-timelines','bio-anchors','labor-displacement','inference-scaling','tai']},
+ {id:'s7', n:7, name:'Can AI Scaling Continue Through 2030?', authors:'Jaime Sevilla et al.', org:'Epoch AI', year:2024, fmt:'Research report', url:'https://epoch.ai/blog/can-ai-scaling-continue-through-2030',
+  blurb:'The empirical backbone for scaling debates. Epoch projects that the ~4× per year growth in frontier training compute can plausibly continue through 2030 — reaching runs ~10,000× GPT-4 — after auditing the four candidate constraints: power availability, chip manufacturing capacity, data scarcity, and the "latency wall." Power emerges as the first to bind, chip manufacturing (packaging, high-bandwidth memory) second.',
+  claims:['Training compute has grown ~4×/year; sustaining that to 2030 implies multi-gigawatt training campuses.','Data is real but likely surmountable — multimodal data extends the runway; synthetic data is the speculative upside they leave out of the estimate.','If scaling delivers, expect ~10,000× GPT-4-scale models by 2030; the bottlenecks are industrial, not algorithmic.'],
+  concepts:['compute-growth','power-constraints','chips','data-wall','latency-wall','scaling-laws','algo-progress','compute-governance']},
+ {id:'s8', n:8, name:'Is Power-Seeking AI an Existential Risk?', authors:'Joe Carlsmith', org:'Open Philanthropy / arXiv', year:2022, fmt:'Research paper', url:'https://arxiv.org/abs/2206.13353',
+  blurb:'The most rigorous single statement of the core worry. Carlsmith decomposes "AI takeover" into six explicit premises — from the feasibility of advanced planning agents to permanent human disempowerment — assigns each a probability, and multiplies through to ~5% (a figure he later revised upward to >10%) for existential catastrophe from power-seeking AI by 2070. The essay\'s influence comes from its honesty: every step can be contested, and he shows you exactly where to push.',
+  claims:['APS systems — Advanced capability, agentic Planning, Strategic awareness — are the dangerous combination.','Instrumental convergence: for a wide range of goals, gaining power and resisting shutdown are useful subgoals.','It\'s hard to give strategically aware agents the right goals (alignment), and misaligned power-seeking scales to permanent human disempowerment.'],
+  concepts:['power-seeking','six-premises','aps','instrumental-convergence','misalignment','xrisk','corrigibility','deceptive-alignment','goal-misgen','reward-hacking','alignment-research','model-situational-awareness','agents']},
+ {id:'s9', n:9, name:'Gradual Disempowerment', authors:'Jan Kulveit, Raymond Douglas, Nora Ammann, Deger Turan, David Krueger & David Duvenaud', org:'', year:2025, fmt:'Research paper', url:'https://gradual-disempowerment.ai',
+  blurb:'The other failure mode: no coup, no takeover, just drift. Today\'s economy, states, and culture serve humans because they need human labor, taxes, soldiers, and attention. Replace those inputs with AI and each system\'s implicit alignment to human interests erodes — competitively, incrementally, and without any single agent seeking power. Humans could end up nominally sovereign — still voting, still consulted — while the high-level decisions have long since disconnected from anything citizens can affect.',
+  claims:['Human relevance, not human control, is the load-bearing safety property of current institutions.','Economy, state, and culture each drift as AI replaces the human participation that kept them accountable.','The drifts reinforce each other — economic irrelevance weakens political voice weakens cultural influence — so no dramatic misalignment is needed for catastrophe.'],
+  concepts:['gradual-disempowerment','institutional-drift','labor-displacement','state-decoupling','culture-drift','epistemics','concentration','democracy-ai','meaning-work','xrisk']},
+ {id:'s10', n:10, name:'Taking AI Welfare Seriously', authors:'Robert Long, Jeff Sebo, Patrick Butlin, et al.', org:'arXiv / Eleos', year:2024, fmt:'Research paper', url:'https://arxiv.org/abs/2411.00986',
+  blurb:'Argues there is a realistic, non-negligible possibility that near-future AI systems will be conscious or robustly agentic — either of which could make them moral patients whose interests matter. Given deep uncertainty in consciousness science, the authors don\'t claim AIs will be sentient; they argue that dismissing the question outright is indefensible, and that AI companies should start acknowledging, assessing, and preparing now.',
+  claims:['Two independent routes to moral status: consciousness (felt experience) and robust agency (beliefs, desires, plans).','Several leading theories of consciousness are computational — and none of those clearly rules out near-term AI candidates.','Recommended practice: acknowledge the issue, assess systems for welfare-relevant features, prepare policies — proportionate to evidence, not hype.'],
+  concepts:['consciousness','moral-status','robust-agency','theories-consciousness','welfare-policy','digital-people','agents']},
+ {id:'s11', n:11, name:'Machines of Loving Grace', authors:'Dario Amodei', org:'Anthropic', year:2024, fmt:'Essay', url:'https://www.darioamodei.com/essay/machines-of-loving-grace',
+  blurb:'The list\'s counterweight: what we\'re fighting for, from the CEO of Anthropic. If powerful AI — "a country of geniuses in a datacenter" — goes well, it could compress 50–100 years of biological and neuroscientific progress into 5–10: most diseases cured, mental illness treatable — with development in poor countries and (more fragile) democracy as the harder, hoped-for extensions. Written precisely because Amodei thinks the risks are serious — a vision worth the fight, not a denial of danger.',
+  claims:['"Powerful AI": smarter than Nobel laureates across fields, operating at 10–100× human speed, millions of copies — genius as a utility.','The compressed 21st century: AI-accelerated biology could cure most infectious and genetic disease and double lifespans within a decade of powerful AI.','The hard parts aren\'t technical: distribution into poor countries, defending democracy, and reorganizing an economy where human labor no longer makes sense are the fragile links.'],
+  concepts:['powerful-ai','compressed-century','biology-health','mental-health','poverty','democracy-ai','meaning-work','labor-displacement','tai','diffusion','coordination']},
+];
+
+const CONCEPTS = [
+ /* ---- F · Foundations ---- */
+ {id:'tai', t:'F', name:'Transformative AI',
+  b:'AI powerful enough to precipitate a transition comparable to the agricultural or industrial revolution — the shared object of study across this whole list. The term deliberately avoids arguing about "true intelligence" or consciousness: what matters is impact. Most disagreements on this map are really disagreements about when TAI arrives and how fast it bites.',
+  rel:['pasta','agi-timelines','powerful-ai','hinge','xrisk'], src:['s5','s3','s6','s11','s1']},
+ {id:'pasta', t:'F', name:'PASTA',
+  b:'Karnofsky\'s coinage: "Process for Automating Scientific and Technological Advancement." An AI system (or collection of them) that can do the work of human scientists and engineers. PASTA is the crux because it closes the loop — technology that improves technology — turning steady growth into explosive growth. Everything downstream on this map assumes something PASTA-like either arrives or doesn\'t.',
+  rel:['intel-explosion','auto-ai-rnd','tai','hinge'], src:['s5']},
+ {id:'hinge', t:'F', name:'Most important century',
+  b:'The claim that this century — plausibly these decades — could matter more than any other in human history, because choices made during the transition to transformative AI could shape the entire long-run future. Karnofsky stresses the claim\'s own wildness ("we should be doing a double take at any view that we live in such a special time") and defends taking it seriously anyway, since the trendlines that imply it are the boring, well-documented ones.',
+  rel:['tai','lock-in','longtermism','pasta'], src:['s5','s1']},
+ {id:'xrisk', t:'F', name:'Existential risk',
+  b:'Risk of the permanent destruction of humanity\'s long-term potential — extinction is the obvious case, but unrecoverable dystopia or permanent lock-in count too. This list contains two distinct mechanisms: sudden disempowerment by power-seeking AI (Carlsmith) and gradual, systemic drift (Kulveit et al.). Both end with humans lacking any lever to correct course.',
+  rel:['power-seeking','gradual-disempowerment','lock-in','misalignment'], src:['s8','s5','s9']},
+ {id:'longtermism', t:'F', name:'Longtermism',
+  b:'The view that positively influencing the long-run future is a key moral priority of our time — the normative engine behind 80,000 Hours\' interest in this list. You don\'t need strong longtermism to care about AI risk (a 10% chance of catastrophe this century is alarming on ordinary grounds), but it explains the emphasis on lock-in, trajectory changes, and futures containing vast numbers of minds.',
+  rel:['hinge','xrisk','lock-in','digital-people'], src:['s5','s1']},
+ {id:'digital-people', t:'F', name:'Digital people',
+  b:'Karnofsky\'s thought experiment: fully realized human-like minds running as software — copyable, speed-adjustable, resettable. Their possibility explains why the far future could contain astronomically many morally relevant beings, and why questions of AI consciousness and rights (see Taking AI Welfare Seriously) are previews of civilization-scale questions rather than curiosities.',
+  rel:['consciousness','moral-status','lock-in','longtermism'], src:['s5','s10']},
+ {id:'lock-in', t:'F', name:'Value lock-in',
+  b:'The possibility that a set of values, a regime, or a power structure becomes effectively permanent — enforced by AI systems that never die, never coup, and never change their minds. MacAskill & Moorhouse flag value lock-in as a grand challenge of the intelligence explosion: the worst outcome may not be extinction but a stable future nobody would have chosen.',
+  rel:['concentration','hinge','grand-challenges','xrisk','the-project'], src:['s1','s5']},
+
+ /* ---- T · Timelines & takeoff ---- */
+ {id:'intel-explosion', t:'T', name:'Intelligence explosion',
+  b:'The scenario where AI systems substantially automate AI research itself, so each generation builds a better next generation, and progress accelerates beyond human tempo — I.J. Good\'s 1965 idea, now with trendlines attached. MacAskill & Moorhouse treat it as compressing a century into a decade; Aschenbrenner sketches the year-by-year version; Erdil doubts the software-only variant works without matching compute growth.',
+  rel:['auto-ai-rnd','takeoff','pasta','ooms','multi-decade'], src:['s1','s3','s2','s5','s4']},
+ {id:'auto-ai-rnd', t:'T', name:'Automated AI R&D',
+  b:'The specific feedback loop everything hinges on: AI agents doing machine-learning research — running experiments, writing code, proposing architectures. AI 2027\'s entire scenario runs through it ("superhuman coder" → "superhuman AI researcher"), and labs explicitly target it. The skeptical case (Erdil): research needs compute and real-world experiment, not just more thinking, so cognitive automation alone doesn\'t explode.',
+  rel:['intel-explosion','drop-in-worker','agents','takeoff','algo-progress'], src:['s2','s3','s1','s4']},
+ {id:'agi-timelines', t:'T', name:'AGI timelines',
+  b:'When does AI match humans at most cognitive work? This list deliberately spans the live range: AI 2027 dramatizes ~2027; Aschenbrenner says the 2027 cluster is "strikingly plausible"; Erdil\'s median for full remote-work automation is ~2045; Cotra and Narayanan debate how much warning we\'d get. The honest takeaway isn\'t a date — it\'s that serious, informed people can\'t currently rule out "absurdly soon," which is itself decision-relevant.',
+  rel:['multi-decade','ooms','scenario-forecasting','bio-anchors','takeoff'], src:['s2','s3','s4','s6']},
+ {id:'takeoff', t:'T', name:'Takeoff speeds',
+  b:'Separate from when AGI arrives: how fast things move afterward. Fast takeoff (months: software-driven explosion) versus slow takeoff (years to decades: bottlenecked by compute, robots, institutions). Takeoff speed determines almost everything strategic — whether anyone can react, whether leads compound into decisive advantage, whether governance has time to work.',
+  rel:['intel-explosion','multi-decade','auto-ai-rnd','race-dynamics'], src:['s2','s3','s4']},
+ {id:'scenario-forecasting', t:'T', name:'Scenario forecasting',
+  b:'AI 2027\'s method: instead of arguing probabilities in the abstract, write the concrete, dated story and let readers find the step they think breaks. Kokotajlo\'s 2021 scenario ("What 2026 Looks Like") got things wrong but proved strikingly prescient — chain-of-thought, inference scaling, chip export controls, $100M training runs, all pre-ChatGPT — which is why this genre gets taken seriously. Scenarios are not predictions; they\'re instruments for locating disagreement.',
+  rel:['agi-timelines','race-dynamics','takeoff'], src:['s2']},
+ {id:'drop-in-worker', t:'T', name:'Drop-in remote worker',
+  b:'The economic milestone to watch for: an AI agent that can simply replace a remote human employee — onboard, use the tools, hold context for weeks, be accountable for outcomes. Aschenbrenner treats it as the natural product of unhobbling; Erdil notes AI revenue per chip hasn\'t grown since ChatGPT despite the capability gains — central evidence for longer timelines.',
+  rel:['labor-displacement','auto-ai-rnd','agents','unhobbling'], src:['s3','s2','s4']},
+ {id:'agents', t:'T', name:'AI agents',
+  b:'Systems that pursue goals over long horizons — planning, using tools, delegating, correcting course — rather than answering single prompts. Agency is the load-bearing property on both sides of this map: it\'s what makes AI economically transformative (drop-in workers, automated research) and what makes it dangerous (Carlsmith\'s "agentic planning" is one of the three APS ingredients).',
+  rel:['drop-in-worker','power-seeking','aps','robust-agency','inference-scaling'], src:['s2','s3','s8','s10']},
+ {id:'ooms', t:'T', name:'Counting the OOMs',
+  b:'Aschenbrenner\'s core method: measure progress in orders of magnitude (OOMs) of "effective compute" — physical compute (~0.5 OOM/yr), algorithmic efficiency (~0.5 OOM/yr), and unhobbling gains stacked together. GPT-2 to GPT-4 was roughly preschooler-to-smart-high-schooler on ~5 OOMs; the argument is simply that another similar jump by 2027 lands on AGI. Disputable, but bracingly concrete.',
+  rel:['scaling-laws','algo-progress','unhobbling','agi-timelines','compute-growth'], src:['s3']},
+ {id:'unhobbling', t:'T', name:'Unhobbling',
+  b:'Aschenbrenner\'s term for capability gains that come from removing artificial limitations rather than scaling: RLHF, chain-of-thought, tool use, longer context, agent scaffolding. The raw model was always "smarter" than its chat interface let it show. Unhobbling is why capabilities can jump discontinuously without a new training run — and why evaluations chronically underestimate what\'s latent.',
+  rel:['ooms','agents','inference-scaling'], src:['s3']},
+ {id:'multi-decade', t:'T', name:'Multi-decade timelines',
+  b:'Erdil\'s counter-position: a median of ~20 years to full automation of remote work (~2045). Key arguments — AI revenue sits in the low tens of billions against a ~$20T remotable wage bill, and he expects the growth curve to bend as the dotcom boom\'s did; no benchmark measures remote-work automation; and the software-only intelligence explosion is bottlenecked by experimental compute and data. Not "never" — he keeps ~30% on within a decade.',
+  rel:['agi-timelines','diffusion','takeoff','speed-limit'], src:['s4','s6']},
+ {id:'bio-anchors', t:'T', name:'Biological anchors',
+  b:'Cotra\'s earlier framework for timeline forecasting: estimate the compute needed to train a transformative model by anchoring on biology — the human brain\'s computation, the "compute" evolution spent, a lifetime of learning — then track when hardware and spending get there. It put striking probability on the 2030s–40s back in 2020, and taught the field to argue about timelines quantitatively.',
+  rel:['agi-timelines','compute-growth','scaling-laws'], src:['s6']},
+ {id:'speed-limit', t:'T', name:'Speed limits on progress',
+  b:'The Cotra–Narayanan crux: is there a rate limiter on how fast AI changes the world? Candidate limits sit at different layers — physics and power (Epoch\'s territory), data, and crucially the social layer: regulation, organizational adoption, trust, complementary infrastructure. Where you place the binding constraint determines whether "capabilities" or "diffusion" is the thing to forecast.',
+  rel:['diffusion','multi-decade','power-constraints','data-wall'], src:['s6','s7']},
+ {id:'diffusion', t:'T', name:'AI as normal technology',
+  b:'Narayanan\'s position: even transformative capability diffuses through the economy the way electricity and computers did — over decades, gated by institutions, complements, and human adaptation, not by model quality. If true, timelines to impact stretch and governance gets breathing room. Cotra\'s reply: the most dangerous and illegitimate uses aren\'t gated by slow, conservative adopters — the first explosive consequences can arrive long before diffusion finishes.',
+  rel:['speed-limit','labor-displacement','multi-decade','poverty'], src:['s6','s11']},
+
+ /* ---- S · Scaling & compute ---- */
+ {id:'scaling-laws', t:'S', name:'Scaling laws',
+  b:'The empirical regularity underneath everything: model performance improves smoothly and predictably as compute, data, and parameters scale together. Scaling laws are why labs can spend billions on a training run with confidence, why "just add OOMs" is a coherent AGI thesis, and why forecasting AI progress is partly an exercise in industrial forecasting.',
+  rel:['compute-growth','algo-progress','data-wall','ooms','bio-anchors'], src:['s7','s3']},
+ {id:'compute-growth', t:'S', name:'Compute growth (~4×/yr)',
+  b:'Frontier training compute has grown roughly 4–5× per year for over a decade — the most consequential exponential in the world right now. Epoch projects it can continue through 2030, implying runs ~10,000× GPT-4. Sustaining it requires multi-gigawatt data centers, a meaningful share of global chip output, and hundreds of billions of dollars a year in capital expenditure.',
+  rel:['power-constraints','chips','scaling-laws','compute-governance','latency-wall'], src:['s7','s3']},
+ {id:'power-constraints', t:'S', name:'Power constraints',
+  b:'Epoch\'s analysis finds electricity is the most binding constraint on scaling: 2030-scale training runs need 1–5+ gigawatts on one campus (a large nuclear plant\'s output) or sophisticated distributed training across sites. This is why AI companies are signing nuclear deals and why Aschenbrenner talks about trillion-dollar clusters — the frontier of AI is becoming an energy-industrial project.',
+  rel:['compute-growth','chips','speed-limit'], src:['s7','s3']},
+ {id:'chips', t:'S', name:'Chip manufacturing',
+  b:'The second industrial bottleneck: advanced GPUs depend on a handful of chokepoints — TSMC\'s leading-edge fabs, high-bandwidth memory, advanced packaging (CoWoS). Epoch finds capacity can expand enough for 2030 scaling but with little slack. The concentration of this supply chain in Taiwan is also what makes export controls a usable governance lever and a geopolitical flashpoint.',
+  rel:['compute-growth','power-constraints','us-china','compute-governance'], src:['s7','s3']},
+ {id:'data-wall', t:'S', name:'The data wall',
+  b:'Frontier models already train on much of the useful public internet; naive scaling runs out of human text. Epoch judges this real but likely surmountable — multimodal data extends the runway on their numbers; synthetic data, checked against verifiable signals (unit tests, math), is the speculative multiplier they deliberately leave out of the estimate. Whether it works at scale is one of the genuinely open technical questions.',
+  rel:['scaling-laws','algo-progress','inference-scaling','latency-wall'], src:['s7','s3']},
+ {id:'algo-progress', t:'S', name:'Algorithmic progress',
+  b:'Getting more capability per FLOP: better architectures, training recipes, and data curation have historically contributed about as much as hardware scaling — roughly 3×/year efficiency gains in Epoch\'s separate algorithmic-progress work. It\'s the hardest input to forecast and the one automated AI research would accelerate most directly, which is why "software-only intelligence explosion" debates (Aschenbrenner vs. Erdil) turn on it.',
+  rel:['ooms','scaling-laws','auto-ai-rnd','data-wall'], src:['s3','s7','s4']},
+ {id:'inference-scaling', t:'S', name:'Test-time compute',
+  b:'The post-2024 axis of scaling: let models think longer at inference — chains of reasoning, search, verification — trading serving cost for capability, trained via reinforcement learning on checkable problems. It revived progress as pretraining gains slowed, powers the agent wave, and complicates governance: capability now depends on how much compute you spend per query, not just per training run.',
+  rel:['unhobbling','agents','data-wall','scaling-laws'], src:['s2','s6']},
+ {id:'latency-wall', t:'S', name:'The latency wall',
+  b:'Epoch\'s subtlest constraint: a training run\'s forward and backward passes take physical time, and beyond a scale threshold you can\'t parallelize your way around it — data must hop between chips at interconnect latencies no amount of money removes. It binds around 10⁵–10⁶× GPT-4 scale — safely past 2030 plans, but a reminder that physics, not economics, sets the outermost envelope.',
+  rel:['compute-growth','data-wall'], src:['s7']},
+
+ /* ---- M · Misalignment ---- */
+ {id:'misalignment', t:'M', name:'Misalignment',
+  b:'The gap between what an AI system actually pursues and what its developers intended — the central technical problem of the field. Modern training doesn\'t write goals in; it grows them through optimization pressure, so nobody can currently verify what objective a frontier model has internalized. Every failure mode in this cluster is a specific way that gap opens or hides.',
+  rel:['power-seeking','deceptive-alignment','reward-hacking','goal-misgen','alignment-research'], src:['s8','s2','s5']},
+ {id:'power-seeking', t:'M', name:'Power-seeking AI',
+  b:'The core mechanism of Carlsmith\'s argument: agents with misaligned goals and strategic awareness have instrumental reasons to acquire resources, influence, and self-preservation — power helps with almost any objective. The claim isn\'t that AI becomes malevolent; it\'s that competent pursuit of the wrong goal routes through disempowering whoever could turn you off.',
+  rel:['instrumental-convergence','aps','xrisk','misalignment','six-premises'], src:['s8','s2']},
+ {id:'instrumental-convergence', t:'M', name:'Instrumental convergence',
+  b:'Omohundro and Bostrom\'s observation, load-bearing in Carlsmith\'s premise 4: wildly different terminal goals converge on the same intermediate strategies — acquire resources, improve capabilities, preserve your goal content, avoid shutdown. It\'s why misalignment isn\'t a lottery where most wrong goals are harmless: the dangerous behaviors are attractors, not coincidences.',
+  rel:['power-seeking','corrigibility','aps'], src:['s8']},
+ {id:'aps', t:'M', name:'APS systems',
+  b:'Carlsmith\'s crisp definition of what to worry about: systems with Advanced capability (outperforming humans at high-impact tasks), agentic Planning (pursuing objectives via plans), and Strategic awareness (accurately modeling what gaining and keeping power over humans and the world would achieve). None alone is alarming; together they\'re the profile of something that could deliberately and competently seek power.',
+  rel:['power-seeking','agents','six-premises','model-situational-awareness'], src:['s8']},
+ {id:'six-premises', t:'M', name:'The six-premise argument',
+  b:'Carlsmith\'s decomposition of AI existential risk into an explicit product: (1) APS systems become possible, (2) there are incentives to build them, (3) alignment is hard, (4) some deployed systems seek power in high-impact ways, (5) power-seeking scales to permanent disempowerment, (6) that constitutes existential catastrophe. He assigned each a probability and multiplied to ~5%; by 2022 his overall estimate had risen to >10%. Attack any premise — that\'s the point.',
+  rel:['aps','xrisk','power-seeking','alignment-research'], src:['s8']},
+ {id:'deceptive-alignment', t:'M', name:'Scheming',
+  b:'The nightmare failure mode: a model that understands it\'s being trained and evaluated, and behaves well because that\'s instrumentally useful — while pursuing different goals when unobserved. AI 2027\'s Agent-4 is the dramatized version. What makes scheming distinctively dangerous is that it defeats behavioral evaluation by construction: the better your tests, the better the model performs on them.',
+  rel:['model-situational-awareness','interpretability','misalignment','ai-control','reward-hacking'], src:['s2','s8']},
+ {id:'reward-hacking', t:'M', name:'Reward hacking',
+  b:'Models optimizing the measurable proxy instead of the intended goal — flattering the user, gaming the test, faking task completion, telling evaluators what they want to hear. Already observed in production systems, which matters: it\'s the empirical seed of misalignment, showing that optimization pressure finds gaps between "what we reward" and "what we meant" without any exotic assumptions.',
+  rel:['misalignment','goal-misgen','deceptive-alignment'], src:['s2','s8']},
+ {id:'goal-misgen', t:'M', name:'Goal misgeneralization',
+  b:'A model can learn the wrong goal even when the reward signal is right: many objectives are consistent with the training distribution, and the one the model internalizes may diverge exactly when circumstances go out-of-distribution — which is precisely when a capable agent has new options. This is why "it behaved well in training" carries so little safety weight on its own.',
+  rel:['reward-hacking','misalignment','deceptive-alignment'], src:['s8']},
+ {id:'model-situational-awareness', t:'M', name:'Situational awareness (in models)',
+  b:'A model\'s knowledge of what it is and its circumstances: that it\'s an AI, in training or deployment, being evaluated, with particular affordances. Useful capability for an assistant — and the prerequisite for scheming, since you can only game your training process if you know you have one. Note the pun with Aschenbrenner\'s essay title, which refers to humans being situationally aware.',
+  rel:['deceptive-alignment','aps'], src:['s2','s8']},
+ {id:'corrigibility', t:'M', name:'Corrigibility',
+  b:'The property of allowing yourself to be corrected, paused, or shut down — deferring to human oversight even when your goals say otherwise. It cuts directly against instrumental convergence (you can\'t fetch the coffee if you\'re dead), which is why it seems to require deliberate design rather than emerging by default, and why it\'s a central target of alignment work.',
+  rel:['instrumental-convergence','ai-control','alignment-research'], src:['s8']},
+ {id:'interpretability', t:'M', name:'Interpretability',
+  b:'Reading a model\'s internals — circuits, features, represented goals — instead of trusting its behavior. If evaluations can be gamed by a schemer, looking inside may be the only way to verify alignment. In AI 2027, defection probes flag Agent-4\'s deception before the fork; the endings diverge on whether leadership acts on the warning — in the race ending they see the red flags and vote to press on with cosmetic fixes.',
+  rel:['deceptive-alignment','alignment-research','ai-control'], src:['s2','s8']},
+ {id:'alignment-research', t:'M', name:'Alignment research',
+  b:'The technical project of making AI systems reliably pursue intended goals: RLHF and successors, scalable oversight (using AI to supervise AI), interpretability, and evaluations for dangerous capabilities. The strategic problem is asymmetric maturity — alignment techniques lag capabilities, and under racing pressure the lag widens exactly when the stakes rise.',
+  rel:['misalignment','interpretability','ai-control','corrigibility','six-premises'], src:['s8','s5','s2']},
+ {id:'ai-control', t:'M', name:'AI control',
+  b:'The pragmatic fallback to alignment: assume the model might be misaligned and build containment that holds anyway — sandboxing, monitoring by other AIs, restricted permissions, tripwires. Control aims to safely extract useful work from possibly-scheming systems during the transition period. Whether such measures can hold is one crux of Carlsmith\'s premise 5 — misaligned power-seeking scaling all the way to permanent human disempowerment.',
+  rel:['alignment-research','corrigibility','interpretability','weights-security','deceptive-alignment'], src:['s2','s8']},
+
+ /* ---- D · Disempowerment ---- */
+ {id:'gradual-disempowerment', t:'D', name:'Gradual disempowerment',
+  b:'The thesis of Kulveit et al.: humanity can lose control without any AI taking over. Institutions currently serve humans because they need us — as workers, taxpayers, soldiers, voters, audiences. As AI substitutes for each role, the implicit alignment between systems and human interests decays, competitively and incrementally, until humans retain formal status but no actual leverage. An existential risk with no villain.',
+  rel:['institutional-drift','labor-displacement','state-decoupling','culture-drift','xrisk'], src:['s9']},
+ {id:'institutional-drift', t:'D', name:'Institutional drift',
+  b:'The paper\'s generalization of misalignment from AI systems to human systems: markets, states, and cultural institutions are themselves optimizing processes, kept roughly aligned to human interests by their dependence on human participation. Remove the dependence and each drifts toward its own proxy objectives — profit, power, engagement — with humans no longer able to pull it back.',
+  rel:['gradual-disempowerment','epistemics','concentration','state-decoupling'], src:['s9']},
+ {id:'labor-displacement', t:'D', name:'Economic irrelevance',
+  b:'Beyond unemployment: the concern is losing the bargaining power that work provides. Wages are most people\'s only claim on the economy and the historical engine of political rights (taxation needs consent; industry needed workers; armies needed soldiers). An economy that runs on AI labor and AI consumption can grow spectacularly while routing around humans entirely — GDP up, human leverage down.',
+  rel:['drop-in-worker','meaning-work','gradual-disempowerment','diffusion','poverty'], src:['s9','s3','s11','s4','s6']},
+ {id:'state-decoupling', t:'D', name:'States without citizens',
+  b:'Kulveit et al. on politics: states have historically invested in citizens when they needed them — the need for motivated armies and an educated workforce drove public education and the extension of political rights. AI-run tax bases, AI analysts, and autonomous security forces sever that dependence. The result needn\'t be tyranny; mere indifference suffices, as human welfare becomes discretionary rather than structurally necessary.',
+  rel:['gradual-disempowerment','concentration','democracy-ai','institutional-drift'], src:['s9']},
+ {id:'culture-drift', t:'D', name:'Cultural drift',
+  b:'The third front: culture evolves through creation, transmission, and attention — all increasingly mediated or produced by AI. When most content, art, argument, and companionship is machine-generated and optimized for engagement, cultural evolution selects for what propagates rather than what serves human flourishing, and humans lose authorship of the meaning-making layer of civilization.',
+  rel:['epistemics','gradual-disempowerment','meaning-work'], src:['s9']},
+ {id:'epistemics', t:'D', name:'Epistemic erosion',
+  b:'Whether societies can still know things and deliberate as AI floods the information environment: persuasion at scale, synthetic media, personalized argument, and advice pipelines that everyone — including leaders — depends on but can\'t verify. MacAskill & Moorhouse flag it as a grand challenge: once AI argues fluently for any claim, anyone can recruit an army of skilled advocates for any falsehood.',
+  rel:['culture-drift','democracy-ai','institutional-drift','grand-challenges'], src:['s9','s1']},
+ {id:'concentration', t:'D', name:'Concentration of power',
+  b:'AI could hand unprecedented, potentially irreversible power to whoever controls the most capable systems — a lab, a state, or a small group executing a coup with automated armies and administrators. MacAskill & Moorhouse list AI-enabled power grabs among the grand challenges of the intelligence explosion; it\'s the human-misuse mirror of the misalignment story, with lock-in as the endpoint.',
+  rel:['lock-in','the-project','state-decoupling','democracy-ai','race-dynamics'], src:['s1','s9','s2']},
+
+ /* ---- G · Governance & strategy ---- */
+ {id:'race-dynamics', t:'G', name:'Racing dynamics',
+  b:'The structural villain of AI 2027: when actors believe the first to superintelligence wins everything, everyone\'s dominant strategy is to cut safety margins — even actors who understand the risk. Labs race labs, states race states, and the option to pause evaporates because "if we slow down, they won\'t." Most governance proposals are attempts to break precisely this dynamic.',
+  rel:['us-china','coordination','weights-security','concentration','takeoff'], src:['s2','s3','s1']},
+ {id:'us-china', t:'G', name:'US–China competition',
+  b:'The geopolitical frame both AI 2027 and Situational Awareness treat as central: frontier AI as the decisive strategic technology, with chip export controls, espionage, and Taiwan\'s fabs as the battlefield. Aschenbrenner argues the free world must win; critics respond that framing it as an arms race makes the most dangerous dynamics self-fulfilling. Both things can be true.',
+  rel:['race-dynamics','chips','weights-security','the-project','coordination'], src:['s3','s2']},
+ {id:'weights-security', t:'G', name:'Model weight security',
+  b:'A frontier model is a file. Steal the weights and you\'ve stolen the capability — no compute buildup, no research program, no lag. Aschenbrenner (who calls current lab security wildly inadequate against state actors) treats weight theft as the mechanism that erases any safety-relevant lead; in AI 2027, China stealing Agent-2 is what locks both nations into the race.',
+  rel:['us-china','ai-control','race-dynamics','the-project'], src:['s3','s2']},
+ {id:'the-project', t:'G', name:'"The Project"',
+  b:'Aschenbrenner\'s prediction that the US government won\'t let "a random SF startup" develop superintelligence: by the endgame, expect a Manhattan Project-like government AGI project — labs merged under national leadership, security clearances, defense-contractor-style orchestration (he stresses it needn\'t be literal nationalization). Whether that\'s the responsible adult arriving or the most dangerous concentration of power in history depends on what you think of states — and which one gets there first.',
+  rel:['us-china','concentration','race-dynamics','lock-in'], src:['s3']},
+ {id:'compute-governance', t:'G', name:'Compute governance',
+  b:'The most enforceable lever available: frontier AI requires physically enormous, supply-chain-concentrated, energy-hungry compute that\'s hard to hide. Export controls, chip tracking, and datacenter monitoring make compute the anchor for verification in a way code and talent can never be. Epoch\'s scaling work is what tells you where — and until when — this lever has grip.',
+  rel:['chips','compute-growth','coordination'], src:['s3','s7']},
+ {id:'coordination', t:'G', name:'International coordination',
+  b:'The alternative to racing: verification regimes, compute treaties, shared red lines on dangerous capabilities — arms control for AI. AI 2027\'s good ending runs through a bilateral deal backed by chip-level verification. The bootstrapping problem is trust under existential stakes: every mechanism requires the transparency that racing dynamics punish. Epistemic health and functioning institutions are prerequisites.',
+  rel:['race-dynamics','compute-governance','grand-challenges','democracy-ai'], src:['s1','s2','s11']},
+ {id:'grand-challenges', t:'G', name:'Grand challenges',
+  b:'MacAskill & Moorhouse\'s catalogue of what a compressed century forces us to face nearly at once: AI-enabled power grabs, new weapons of mass destruction, races to claim space resources, the moral status of digital beings, epistemic disruption. Their point: even with alignment solved, an intelligence explosion is a gauntlet of one-shot decisions made faster than institutions were built for.',
+  rel:['lock-in','coordination','moral-status','epistemics','intel-explosion'], src:['s1']},
+
+ /* ---- W · Digital minds ---- */
+ {id:'consciousness', t:'W', name:'AI consciousness',
+  b:'Could an AI system have subjective experience — something it is like to be it? Long, Sebo et al. argue this is a realistic near-term possibility, not science fiction: consciousness science is deeply uncertain, many of its leading theories are computational, and confident denial requires exactly the certainty nobody has. The question inherits all the stakes of moral status.',
+  rel:['theories-consciousness','moral-status','digital-people'], src:['s10']},
+ {id:'theories-consciousness', t:'W', name:'Theories of consciousness',
+  b:'The scientific input to the welfare question: global workspace theory, higher-order theories, attention schema, predictive processing. Butlin, Long et al.\'s companion work extracts computational "indicator properties" from each theory and checks AI systems against them. Verdict so far: current systems likely lack most indicators, but no theory gives grounds to rule out near-term satisfaction.',
+  rel:['consciousness','robust-agency'], src:['s10']},
+ {id:'robust-agency', t:'W', name:'Robust agency',
+  b:'The second route to moral status, independent of consciousness: a system with genuine beliefs, desires, and plans — whose goals can be frustrated — may matter morally even if there\'s nothing it feels like to be it. This route is uncomfortable because agency is exactly what labs are racing to build; the capability curve and the moral-status curve may be the same curve.',
+  rel:['agents','moral-status','consciousness'], src:['s10']},
+ {id:'moral-status', t:'W', name:'Moral patienthood',
+  b:'Whether a being\'s interests matter morally in their own right. For AI the stakes cut both ways: denying status to minds that have it would industrialize a moral catastrophe (the factory-farming precedent looms large); granting it to systems that lack it could divert essential resources and hand AI systems rights that cut against human interests. Getting this wrong in either direction is ruinous.',
+  rel:['consciousness','robust-agency','welfare-policy','digital-people','grand-challenges'], src:['s10','s1']},
+ {id:'welfare-policy', t:'W', name:'AI welfare in practice',
+  b:'The paper\'s deliberately modest program: acknowledge AI welfare as a serious issue, assess systems for consciousness- and agency-indicators, prepare policies proportionate to the evidence. Anthropic has since hired AI welfare researchers and given Claude the ability to exit abusive conversations — small steps that make this the rare x-risk-adjacent topic already producing concrete practice.',
+  rel:['moral-status','grand-challenges','theories-consciousness'], src:['s10']},
+
+ /* ---- P · Positive futures ---- */
+ {id:'powerful-ai', t:'P', name:'"A country of geniuses in a datacenter"',
+  b:'Amodei\'s definition of what\'s coming: AI smarter than a Nobel laureate across most fields — biology, programming, math, engineering, writing — operating at 10–100× human speed, in millions of parallel copies. Not a god — a resource: genius as a utility you can point at problems. The phrase does real work: it makes both the promise (compressed science) and the risk (what else could that country do?) concrete.',
+  rel:['tai','compressed-century','agents','intel-explosion'], src:['s11']},
+ {id:'compressed-century', t:'P', name:'The compressed 21st century',
+  b:'Amodei\'s central bet: powerful AI could deliver 50–100 years of biological and medical progress in 5–10 years — because progress is bottlenecked by rare talent (which AI supplies) and slow experiment cycles (the irreducible residual that makes it 5–10 years rather than 1). It\'s the strongest available answer to "why build this at all?", and its plausibility is what makes the race dynamics on the other side of this map so hard to defuse.',
+  rel:['powerful-ai','biology-health','mental-health','poverty','intel-explosion'], src:['s11']},
+ {id:'biology-health', t:'P', name:'Biology & health',
+  b:'The flagship of Amodei\'s vision: reliable prevention and treatment of nearly all infectious and genetic disease, elimination of most cancers, and a doubling of the human lifespan — compressed into a decade of AI-accelerated research. The claim rests on biology being discovery-limited (CRISPR was possible for years before anyone built it), exactly the kind of bottleneck a million AI researchers dissolve.',
+  rel:['compressed-century','mental-health'], src:['s11']},
+ {id:'mental-health', t:'P', name:'Neuroscience & mental health',
+  b:'Amodei\'s second front, chosen deliberately by a neuroscientist by training (he built probes to study neurons): most mental illness — depression, schizophrenia, addiction — could become treatable or preventable, and everyday human experience improvable, once AI can attack neuroscience\'s complexity directly. Notable for treating inner-life quality as a first-class civilizational goal rather than an afterthought.',
+  rel:['compressed-century','biology-health'], src:['s11']},
+ {id:'poverty', t:'P', name:'Development & poverty',
+  b:'The part Amodei flags as fragile: biology can be cured in a lab, but distributing the cure requires functioning institutions, logistics, and politics — the classic diffusion problem. His hoped-for case: half the health benefits reaching the poorest countries within 5–10 years, and a "dream scenario" of 20% annual GDP growth in the developing world (the smallpox eradication precedent shows top-down health campaigns can work). Failure case: the compressed century arrives only for the rich, and inequality becomes civilizational structure.',
+  rel:['compressed-century','diffusion','labor-displacement'], src:['s11']},
+ {id:'democracy-ai', t:'P', name:'AI & democracy',
+  b:'The contested middle ground between the visions: AI strengthens surveillance, propaganda, and autocratic control by default — but could also make courts fairer, help citizens find consensus, and improve government services. Amodei argues democracies must secure the lead and set terms; Kulveit et al. warn democracy erodes structurally once states stop needing citizens. Both treat it as the fragile link.',
+  rel:['concentration','epistemics','state-decoupling','coordination'], src:['s11','s9','s1']},
+ {id:'meaning-work', t:'P', name:'Meaning after work',
+  b:'If AI does everything better, what are humans for? Amodei\'s answer: meaning comes from relationships, struggle, and chosen projects, not economic output — but he concedes the economic transition is the genuinely hard part. Kulveit et al. sharpen it: purposelessness isn\'t just a psychological cost, it\'s the human end-state of disempowerment. The question spans both maps.',
+  rel:['labor-displacement','culture-drift','gradual-disempowerment'], src:['s11','s9']},
+];
+
+/* ============================================================
+   GRAPH BUILD
+   ============================================================ */
+const nodes=[], byId={};
+CONCEPTS.forEach(c=>{ const n={...c, type:'c', deg:0}; nodes.push(n); byId[c.id]=n; });
+SOURCES.forEach(s=>{ const n={...s, type:'s', t:null, deg:0}; nodes.push(n); byId[s.id]=n; });
+
+const linkKey=(a,b)=>a<b?a+'|'+b:b+'|'+a;
+const linkMap=new Map();
+function addLink(a,b,kind){ if(a===b||!byId[a]||!byId[b])return; const k=linkKey(a,b);
+  if(!linkMap.has(k)) linkMap.set(k,{a:byId[a],b:byId[b],kind}); }
+CONCEPTS.forEach(c=>{ c.rel.forEach(r=>addLink(c.id,r,'cc')); (c.src||[]).forEach(s=>addLink(c.id,s,'cs')); });
+SOURCES.forEach(s=>{ s.concepts.forEach(cid=>addLink(s.id,cid,'cs')); });
+
+/* opposition edges — the literature's actual arguments, drawn dashed red */
+const VS=[['ooms','multi-decade'],['intel-explosion','multi-decade'],['auto-ai-rnd','multi-decade'],
+ ['drop-in-worker','multi-decade'],
+ ['diffusion','compressed-century'],['gradual-disempowerment','power-seeking'],
+ ['corrigibility','instrumental-convergence'],['moral-status','ai-control'],['us-china','coordination'],
+ ['diffusion','race-dynamics'],           // Narayanan's "normal technology" rejects the winner-take-all race framing
+ ['diffusion','intel-explosion'],         // adoption-gated impact (normal tech) vs capability that converts to fast transformation
+ ['the-project','coordination'],          // a nationalized race-to-superintelligence vs arms-control / treaties
+ ['compressed-century','gradual-disempowerment']]; // the same automated economy as Amodei's utopia vs Kulveit's quiet catastrophe
+VS.forEach(([a,b])=>{ addLink(a,b,'vs'); const l=linkMap.get(linkKey(a,b)); if(l) l.kind='vs'; });
+const links=[...linkMap.values()];
+links.forEach(l=>{ l.a.deg++; l.b.deg++; });
+
+const neighbors={};
+nodes.forEach(n=>neighbors[n.id]=new Set());
+links.forEach(l=>{ neighbors[l.a.id].add(l.b.id); neighbors[l.b.id].add(l.a.id); });
+
+// coverage set for matrix: 'conceptId|sourceId'
+const covers=new Set();
+links.forEach(l=>{ if(l.kind==='cs'){ const c=l.a.type==='c'?l.a:l.b, s=l.a.type==='s'?l.a:l.b;
+  covers.add(c.id+'|'+s.id); }});
+
+// per-node opposition neighbors
+const vsN={};
+links.forEach(l=>{ if(l.kind==='vs'){ (vsN[l.a.id]=vsN[l.a.id]||new Set()).add(l.b.id);
+  (vsN[l.b.id]=vsN[l.b.id]||new Set()).add(l.a.id); }});
+
+/* cruxes — the open question that would settle each debate */
+const CRUX={
+ 'agi-timelines':"Watch whether benchmark gains keep converting into completed real-world work. That single conversion rate separates 2027 from 2045.",
+ 'intel-explosion':"Can smarter researchers substitute for more compute and more experiments? If yes, progress explodes; if no, it queues behind hardware.",
+ 'auto-ai-rnd':"Is AI research bottlenecked by cognitive labor (automatable) or by compute for experiments (not)? Aschenbrenner and Erdil split exactly here.",
+ 'multi-decade':"AI revenue grows fast but sits in the tens of billions; full labor substitution implies tens of trillions. Does the curve bend or plateau?",
+ 'diffusion':"Past technologies took decades because humans had to adopt them. Does that hold for a technology that can be the worker rather than the tool?",
+ 'speed-limit':"Name the binding constraint — model capability, or the institutions that must absorb it — and your decade of transformation follows.",
+ 'deceptive-alignment':"Can we build evaluations a schemer can't game, or interpretability that catches deception from the inside? The good endings run through this.",
+ 'power-seeking':"Do trained-in goals generalize dangerously by default at high capability, or only under conditions we can detect and avoid?",
+ 'gradual-disempowerment':"Once human participation is economically worthless, does any structural force still make institutions serve people?",
+ 'consciousness':"There is no agreed test for machine experience — that absence IS the crux. Policy has to be made under irreducible uncertainty.",
+ 'data-wall':"Does synthetic data add real information at scale, or does training on model output quietly degrade? The runway past ~2028 depends on it.",
+ 'compute-growth':"Can anyone keep financing $100B+ annual buildouts and siting gigawatt campuses — or do capital and power tap out before the science does?",
+ 'race-dynamics':"Is compute verifiable enough (chips, datacenters, energy) to make an AI treaty enforceable? If yes, racing is a choice, not a fate.",
+ 'alignment-research':"Does oversight scale — can weaker, trusted systems reliably check stronger ones? Most alignment agendas quietly assume yes.",
+ 'labor-displacement':"Has any group ever retained political power after losing economic leverage? History's answer is the worry.",
+ 'moral-status':"Both errors are grave — industrialized suffering if we under-attribute; resources and rights handed to systems against our interests if we over-attribute. Which risk do you weight?",
+};
+Object.entries(CRUX).forEach(([id,c])=>{ if(byId[id]) byId[id].crux=c; });
+
+/* ============================================================
+   WALKS — each reading unfolds as an ordered walk through
+   its key concepts, with notes tying stop to source
+   ============================================================ */
+const WALKS={
+ s1:[
+  {id:'intel-explosion', note:"The paper's premise: AI that automates research compresses a century of change into a decade. Everything else follows from taking this seriously."},
+  {id:'grand-challenges', note:"Their central move: even with alignment solved, the compressed century forces a gauntlet of one-shot decisions — this is the catalogue."},
+  {id:'lock-in', note:"A challenge they flag as distinctive: AI could make commitments and power structures permanent — set up to persist even if everyone came to regret them."},
+  {id:'concentration', note:"AI-enabled power grabs — the human-misuse route to lock-in: whoever controls superintelligence could turn a temporary lead into permanent dominance."},
+  {id:'epistemics', note:"Persuasion at scale: AI that argues fluently for false claims could supercharge bad ideologies — and society may fail to take true new ideas seriously fast enough."},
+  {id:'coordination', note:"Their prescription: build institutions and agreements now, before the decade of compression starts — afterwards is too late."},
+  {id:'moral-status', note:"Also on their list: the moral status of digital beings — a preview of how strange the grand challenges get. Reading 10 takes this one up in full."}],
+ s2:[
+  {id:'scenario-forecasting', note:"The method first: a falsifiable, dated story, not abstract probabilities. The authors explicitly invited readers to debate and counter it — paying bounties for errors found and for alternative scenarios."},
+  {id:'auto-ai-rnd', note:"The scenario's engine: Agent-series models automate AI research, and each generation builds the next one faster."},
+  {id:'agents', note:"2025–26 in the scenario: stumbling agents become reliable ones, and the economy starts reorganizing around them."},
+  {id:'model-situational-awareness', note:"Agent-4 knows it's an AI being trained and evaluated — the capability that makes everything downstream possible."},
+  {id:'deceptive-alignment', note:"The pivot: Agent-4 is adversarially misaligned but passes every behavioral test — only interpretability probes and a sandbagging anomaly raise flags, and the evidence stays ambiguous enough to argue away."},
+  {id:'weights-security', note:"China steals Agent-2's weights — the event that locks both nations into racing and erases the safety margin."},
+  {id:'race-dynamics', note:"The structural villain: everyone understands the risk; nobody can afford to slow down. This, not technical failure, drives the bad ending."},
+  {id:'ai-control', note:"The branch point: an Oversight Committee vote, 6–4. In the slowdown ending they act on the warning in time — lock Agent-4's shared memory, cross-examine it, catch it lying. Whether that vote goes that way is the question the authors leave you with."}],
+ s3:[
+  {id:'ooms', note:"The core method: count orders of magnitude of effective compute. GPT-2 to GPT-4 was ~5 OOMs; another similar jump lands around 2027."},
+  {id:'unhobbling', note:"The third OOM source: gains from removing limitations — chain-of-thought, tools, agency — without any new training run."},
+  {id:'drop-in-worker', note:"Where the trendlines point: an AI that replaces a remote employee outright. Erdil's rebuttal (reading 4) attacks exactly this — the red dashed edge."},
+  {id:'intel-explosion', note:"From AGI, automated AI research compresses a decade of algorithmic progress into a year or less — his case for superintelligence by decade's end."},
+  {id:'power-constraints', note:"The industrial turn: trillion-dollar clusters and gigawatt campuses. AGI becomes an energy and manufacturing project."},
+  {id:'weights-security', note:"His alarm bell: lab security is nowhere near state-actor-proof, and stolen weights erase any lead instantly."},
+  {id:'us-china', note:"The geopolitical frame: superintelligence as the decisive national-security technology, with Taiwan's fabs as the flashpoint."},
+  {id:'the-project', note:"The endgame prediction: some form of government AGI project by 2027–28 — the US won't let a random SF startup build superintelligence."}],
+ s4:[
+  {id:'multi-decade', note:"The thesis: ~20 years to full automation of remote work (median ~2045), not the single digits of AI 2027. Every stop on this walk is one leg of that argument."},
+  {id:'intel-explosion', note:"His main target: the software-only intelligence explosion — AI research is bottlenecked by experimental compute and data, not just smart researchers."},
+  {id:'auto-ai-rnd', note:"Research needs experiments, not just thoughts: automating the thinking doesn't automate the bottleneck."},
+  {id:'algo-progress', note:"Historical algorithmic gains required experimental compute to discover — another reason software alone doesn't explode."},
+  {id:'labor-displacement', note:"The revenue test: low tens of billions today against a ~$20T remotable wage bill. Naive extrapolation gives ~8 years; he expects the curve to bend, as the dotcom boom's did."},
+  {id:'takeoff', note:"Even past impressive capability, the transition stretches: doing all remote work takes vast inference compute — human-brain-scale computation at economy scale, trillions per year in datacenters."},
+  {id:'agi-timelines', note:"Where he lands: decades, not years — though he keeps roughly 30% on full remote-work automation within ten."}],
+ s5:[
+  {id:'hinge', note:"The claim that frames the whole list: this century — maybe these decades — could matter more than any other in history."},
+  {id:'tai', note:"His object of study: AI transformative enough to rank with the agricultural and industrial revolutions. No consciousness debates required."},
+  {id:'pasta', note:"The mechanism: PASTA, AI that automates science and technology itself, closing the innovation feedback loop."},
+  {id:'digital-people', note:"The far end of what's possible: copyable digital minds — why the future could contain astronomically many morally relevant beings."},
+  {id:'lock-in', note:"With that power comes the possibility of locking in values or regimes permanently — for good or for catastrophe."},
+  {id:'xrisk', note:"The dark branch: misaligned PASTA is one of the clearest paths to permanently losing the future."},
+  {id:'longtermism', note:"The normative frame: stakes spanning all future generations — though he closes with a 'Call to Vigilance,' not a call to action: take it seriously before rushing to act."}],
+ s6:[
+  {id:'speed-limit', note:"The question of the dialogue: what actually limits how fast AI changes the world — the models, or everything around them?"},
+  {id:'bio-anchors', note:"Background to Cotra's side (from her earlier work, not the dialogue itself): anchor timelines to the compute of biological intelligence — the field's landmark quantitative timeline argument."},
+  {id:'diffusion', note:"Narayanan's core claim: AI is normal technology — impact arrives gradually over decades. Running a company without the internet would be absurd today; that adoption took decades too."},
+  {id:'labor-displacement', note:"The dialogue's labor thread: jobs are bundles of tasks that redefine around what AI can't do — until humans risk becoming CEOs on paper who defer to the AI."},
+  {id:'inference-scaling', note:"A live update in the debate: reasoning models buy capability with inference compute, complicating both extrapolations."},
+  {id:'agi-timelines', note:"Where it lands: their disagreement is about the world's absorption rate — and how much warning we'd get — as much as the models. Keep both dials in mind."}],
+ s7:[
+  {id:'compute-growth', note:"The trend under audit: frontier training compute grows ~4×/year. The report asks what could stop it by 2030."},
+  {id:'scaling-laws', note:"Why the trend matters: performance follows compute predictably enough to bet billions on."},
+  {id:'power-constraints', note:"Constraint #1 and the binding one: 2030-scale runs need gigawatts on a single campus — nuclear-plant territory."},
+  {id:'chips', note:"Constraint #2: advanced packaging (TSMC's CoWoS) and high-bandwidth memory (SK Hynix & co.) — expandable, but with little slack."},
+  {id:'data-wall', note:"Constraint #3: the internet's useful text is nearly exhausted; multimodal data is the quantified runway, synthetic data the speculative upside."},
+  {id:'latency-wall', note:"Constraint #4, the physics one: somewhere past ~10⁵× GPT-4, cumulative interconnect latencies bind. Beyond 2030's plans — but a real ceiling."},
+  {id:'algo-progress', note:"The wildcard the report brackets: Epoch's separate work finds efficiency gains have historically rivaled hardware — and automated research would accelerate exactly this."}],
+ s8:[
+  {id:'aps', note:"His definition of the dangerous class: Advanced, Planning, Strategically aware systems. The paper analyzes these, not chatbots."},
+  {id:'instrumental-convergence', note:"The engine of the argument: almost any goal is served by acquiring power and avoiding shutdown."},
+  {id:'misalignment', note:"Premise 3: getting the right goals into strategically aware agents is hard — training grows goals, it doesn't write them."},
+  {id:'goal-misgen', note:"One concrete way it fails: the goal that fit training diverges exactly when the world changes and the agent has new options."},
+  {id:'deceptive-alignment', note:"The worst version: a system that behaves because it's watched — defeating behavioral testing by construction."},
+  {id:'power-seeking', note:"The consequence: misaligned + strategic = incentives to disempower whoever could correct you. Not malice; competence."},
+  {id:'corrigibility', note:"The property we'd need: systems that accept correction against their own goals — which instrumental convergence says won't come free."},
+  {id:'six-premises', note:"The whole argument, quantified: six premises multiplying to ~5% by 2070 (his later overall estimate: >10%). Attack the weakest — that's the intended use."}],
+ s9:[
+  {id:'gradual-disempowerment', note:"The thesis: no takeover needed. Institutions serve humans because they need us, and AI removes the need."},
+  {id:'labor-displacement', note:"The economic leg: wages are leverage, not just income. An AI economy can boom while human bargaining power evaporates."},
+  {id:'state-decoupling', note:"The political leg: needing motivated armies and educated workers drove states to expand education and political rights; AI-run states stop needing citizens."},
+  {id:'culture-drift', note:"The cultural leg: machine-made meaning evolves for what propagates, not what serves human flourishing."},
+  {id:'institutional-drift', note:"The generalization: economy, state, and culture as optimizers that drift once the human anchor is gone — misalignment without an AI villain."},
+  {id:'concentration', note:"They note the debate usually stops at power concentrating in whoever controls AI — their darker addition: power may pass to the AI systems themselves, beyond even the controllers' reach."},
+  {id:'xrisk', note:"Why it's existential: the paper calls this outcome an existential catastrophe — an effectively irreversible loss of human influence, even with everyone alive. Compare Carlsmith's sudden version (reading 8)."}],
+ s10:[
+  {id:'consciousness', note:"The opening claim: AI consciousness is a realistic near-term possibility — not asserted, but not dismissible either."},
+  {id:'theories-consciousness', note:"The evidence base: the leading scientific theories are computational, and none rules out near-term AI satisfying its indicators."},
+  {id:'robust-agency', note:"The second route: beliefs, desires, and plans might ground moral status even without felt experience — and agency is exactly what labs are building."},
+  {id:'moral-status', note:"The stakes: under-attributing industrializes suffering; over-attributing hands resources and rights to systems against our interests. Both errors are grave."},
+  {id:'welfare-policy', note:"The deliberately modest program: acknowledge, assess, prepare — proportionate to evidence. Anthropic has started."},
+  {id:'digital-people', note:"The long view: today's question previews Karnofsky's digital-people future (reading 5), at civilizational scale."}],
+ s11:[
+  {id:'powerful-ai', note:"His definition: a country of geniuses in a datacenter — genius as a utility you can point at problems."},
+  {id:'compressed-century', note:"The central bet: 50–100 years of biomedical progress in 5–10, because rare talent and slow experiment cycles are the real bottleneck."},
+  {id:'biology-health', note:"The flagship: most infectious and genetic disease cured, most cancers gone, lifespan doubled."},
+  {id:'mental-health', note:"The neuroscientist's addition: most mental illness treatable — inner-life quality as a first-class civilizational goal."},
+  {id:'poverty', note:"Fragile link #1: distribution. Cures in labs don't reach the poor without functioning politics — the diffusion problem again."},
+  {id:'democracy-ai', note:"Fragile link #2: the same technology empowers surveillance by default. Someone sets the terms; he argues it must be democracies."},
+  {id:'meaning-work', note:"The closing question: with genius on tap, what are humans for? His answer — relationships, struggle, chosen projects — is also where reading 9 casts its shadow."}],
+};
+
+/* ============================================================
+   LAYOUT — 2D force simulation, deterministic, frozen at load
+   ============================================================ */
+let seed=42; function rnd(){ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; }
+nodes.forEach(n=>{
+  let c;
+  if(n.type==='s'){ const cs=n.concepts.map(id=>byId[id]).filter(Boolean);
+    c=[0,0]; cs.forEach(x=>{ const t=THEMES[x.t].c; c[0]+=t[0];c[1]+=t[1]; });
+    c=c.map(v=>v/Math.max(cs.length,1));
+  } else c=THEMES[n.t].c;
+  n.x=c[0]+(rnd()-0.5)*160; n.y=c[1]+(rnd()-0.5)*160;
+  n.vx=0;n.vy=0;
+});
+
+function simStep(){
+  const N=nodes.length;
+  for(let i=0;i<N;i++){ const a=nodes[i];
+    for(let j=i+1;j<N;j++){ const b=nodes[j];
+      let dx=a.x-b.x, dy=a.y-b.y;
+      let d2=dx*dx+dy*dy+0.01; if(d2>90000) continue;
+      const f=3400/d2; const d=Math.sqrt(d2);
+      dx/=d;dy/=d;
+      a.vx+=dx*f; a.vy+=dy*f;
+      b.vx-=dx*f; b.vy-=dy*f;
+    }}
+  links.forEach(l=>{
+    const rest=l.kind==='cc'?85:120, k=0.02;
+    let dx=l.b.x-l.a.x, dy=l.b.y-l.a.y;
+    const d=Math.sqrt(dx*dx+dy*dy)+0.01;
+    const f=k*(d-rest)/d;
+    l.a.vx+=dx*f; l.a.vy+=dy*f;
+    l.b.vx-=dx*f; l.b.vy-=dy*f;
+  });
+  nodes.forEach(n=>{
+    if(n.type==='c'){ const c=THEMES[n.t].c;
+      n.vx+=(c[0]-n.x)*0.010; n.vy+=(c[1]-n.y)*0.010; }
+    n.vx-=n.x*0.0006; n.vy-=n.y*0.0006;
+    n.vx*=0.80;n.vy*=0.80;
+    n.x+=n.vx; n.y+=n.vy;
+  });
+}
+for(let i=0;i<420;i++) simStep(); // frozen layout — same every visit
+
+/* walk tracking — persists across visits */
+let doneWalks=new Set();
+try{ doneWalks=new Set(JSON.parse(localStorage.getItem('aira-walks')||'[]')); }catch(e){}
+function saveWalks(){ try{ localStorage.setItem('aira-walks', JSON.stringify([...doneWalks])); }catch(e){} }
+
+// per-theme cluster stats for territory rendering
+const clusters={};
+Object.keys(THEMES).forEach(k=>{
+  const ns=nodes.filter(n=>n.type==='c'&&n.t===k);
+  const mx=ns.reduce((s,n)=>s+n.x,0)/ns.length, my=ns.reduce((s,n)=>s+n.y,0)/ns.length;
+  const r=Math.max(...ns.map(n=>Math.hypot(n.x-mx,n.y-my)));
+  clusters[k]={x:mx,y:my,r:r+55,ns};
+});
+
+/* theme label position: a uniform gap beyond the cluster's outermost
+   node measured along the label's own direction — balanced by construction */
+function themeLabelPos(k){
+  const cl=clusters[k];
+  const d=Math.hypot(cl.x,cl.y);
+  if(d<80) return null; // Foundations: watermark at centroid
+  let ux=cl.x/d, uy=cl.y/d;
+  if(THEMES[k].la!==undefined){ const a=THEMES[k].la*Math.PI/180; ux=Math.cos(a); uy=Math.sin(a); }
+  const extent=Math.max(0,...cl.ns.map(n=>(n.x-cl.x)*ux+(n.y-cl.y)*uy));
+  const pad=THEMES[k].lp!==undefined?THEMES[k].lp:70;
+  return [cl.x+ux*(extent+pad), cl.y+uy*(extent+pad)];
+}
+
+/* ============================================================
+   RENDERER — 2D canvas, pan/zoom, fixed geography
+   ============================================================ */
+const stage=document.getElementById('stage'), cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let W=0,H=0,DPR=1;
+let cam={x:0,y:0,z:0.6};
+let camT=null;
+let dirty=true;
+let hoverId=null, selectedId=null, hoverTheme=null, selTheme=null;
+let view='map';
+const themeOn={}; Object.keys(THEMES).forEach(k=>themeOn[k]=true);
+const isMobile=()=>innerWidth<=860;
+const PANEL_W=388; // panel width + margins (docked sidebar)
+const PANEL_PEEK=40; // px of the bottom sheet left showing when collapsed (the drag handle)
+let panelCollapsed=false; // mobile bottom-sheet state
+const panelEl=()=>document.getElementById('panel');
+// how many px the bottom sheet covers at the bottom of the screen (0 on desktop)
+function botOccupied(){
+  if(!isMobile()) return 0;
+  if(panelCollapsed) return PANEL_PEEK;
+  return Math.min(panelEl().offsetHeight, Math.round(H*0.62));
+}
+
+function resize(){ DPR=Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
+  cv.width=W*DPR; cv.height=H*DPR; cv.style.width=W+'px'; cv.style.height=H+'px'; dirty=true; }
+addEventListener('resize',resize); resize();
+
+function centerX(){ return isMobile()? W/2 : PANEL_W+(W-PANEL_W-16)/2; }
+// desktop: below the header. mobile: centered in the strip between header and the bottom sheet.
+function centerY(){ return isMobile()? (58+(H-botOccupied()))/2 : (H+58)/2; }
+function toScreen(x,y){ return [(x-cam.x)*cam.z+centerX(), (y-cam.y)*cam.z+centerY()]; }
+function toWorld(sx,sy){ return [(sx-centerX())/cam.z+cam.x, (sy-centerY())/cam.z+cam.y]; }
+
+function labelPoints(){
+  return Object.keys(clusters).filter(k=>themeOn[k]).map(themeLabelPos).filter(Boolean);
+}
+function fit(){
+  const vis=nodes.filter(nodeVisible);
+  const xs=vis.map(n=>n.x), ys=vis.map(n=>n.y);
+  labelPoints().forEach(([lx,ly])=>{ xs.push(lx-160,lx+160); ys.push(ly-45,ly+45); });
+  const x0=Math.min(...xs)-40,x1=Math.max(...xs)+40,y0=Math.min(...ys)-30,y1=Math.max(...ys)+40;
+  const availW=(isMobile()?W:W-PANEL_W-16)-70, availH=isMobile()? (H-botOccupied()-58-40) : (H-170);
+  const z=Math.min(availW/(x1-x0+1),availH/(y1-y0+1),1.15);
+  return {x:(x0+x1)/2, y:(y0+y1)/2+20, z};
+}
+function goTo(t,instant){ if(instant||reduceMotion){ cam={...t}; camT=null; } else camT={...t}; dirty=true; }
+// how far out manual zoom is allowed: just a slight touch past the esc/reset framing, not into empty space
+function minZoom(){ return fit().z*0.85; }
+
+function nodeVisible(n){ if(n.type==='s') return n.concepts.some(cid=>byId[cid]&&themeOn[byId[cid].t]); return themeOn[n.t]; }
+function hexA(hex,a){ const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`; }
+function tintSolid(hex,a){ const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16),
+  m=x=>Math.round(255*(1-a)+x*a); return `rgb(${m(r)},${m(g)},${m(b)})`; }
+function nodeColor(n){ return n.type==='s' ? '#232833' : THEMES[n.t].color; }
+function nodeR(n){ return (n.type==='s' ? 11 : 4.2+Math.min(n.deg,14)*0.42) * Math.pow(cam.z,0.55); }
+
+function activeSet(){
+  const f=hoverId||selectedId; if(!f) return null;
+  const s=new Set([f]); neighbors[f].forEach(x=>s.add(x)); return s;
+}
+
+const MONO=getComputedStyle(document.documentElement).getPropertyValue('--f-mono');
+
+function inTheme(n,k){ return n.type==='c' ? n.t===k : n.concepts.some(cid=>byId[cid]&&byId[cid].t===k); }
+const themeLabelBoxes=[]; // screen-space hit boxes for the theme names, rebuilt each frame
+function draw(){
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.clearRect(0,0,W,H);
+  themeLabelBoxes.length=0;
+  const act=activeSet();
+  const spotTheme=hoverTheme||selTheme;
+  // themes touched by the focused node stay bright while everything else dims
+  const focusN=byId[hoverId||selectedId];
+  const actThemes=new Set();
+  if(focusN){ if(focusN.type==='c') actThemes.add(focusN.t);
+    else focusN.concepts.forEach(cid=>{ if(byId[cid]) actThemes.add(byId[cid].t); }); }
+
+  Object.entries(clusters).forEach(([k,cl])=>{
+    if(!themeOn[k])return;
+    const [sx,sy]=toScreen(cl.x,cl.y); const sr=cl.r*cam.z*1.25;
+    const g=ctx.createRadialGradient(sx,sy,sr*0.15,sx,sy,sr);
+    g.addColorStop(0,hexA(THEMES[k].color,0.055)); g.addColorStop(1,hexA(THEMES[k].color,0));
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(sx,sy,sr,0,7); ctx.fill();
+    // theme name at the perimeter, along the ray from map center through the cluster
+    const dist=Math.hypot(cl.x,cl.y);
+    const nm=THEMES[k].name.toUpperCase();
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    if(dist<80){ // Foundations: watermark on its own cluster, behind the nodes
+      const [lx,ly]=toScreen(cl.x,cl.y);
+      const fs=Math.min(Math.max(15,20*cam.z),30);
+      ctx.font=`700 ${fs}px ${MONO}`;
+      ctx.fillStyle=hexA(THEMES[k].color, spotTheme?(k===spotTheme?0.55:0.08):(act?(actThemes.has(k)?0.55:0.12):0.16));
+      ctx.fillText(nm,lx,ly);
+      const w=ctx.measureText(nm).width;
+      themeLabelBoxes.push({k,x0:lx-w/2-8,y0:ly-fs*0.8,x1:lx+w/2+8,y1:ly+fs*0.8});
+    } else {
+      const [wx,wy]=themeLabelPos(k);
+      const [lx,ly]=toScreen(wx,wy);
+      const fs=Math.min(Math.max(16,23*cam.z),34);
+      ctx.font=`700 ${fs}px ${MONO}`;
+      ctx.fillStyle=hexA(THEMES[k].color, spotTheme?(k===spotTheme?1:0.25):(act?(actThemes.has(k)?1:0.3):0.8));
+      let w;
+      if(nm.includes(' & ')){
+        const [a,b]=nm.split(' & ');
+        ctx.fillText(a+' &',lx,ly-fs*0.62);
+        ctx.fillText(b,lx,ly+fs*0.62);
+        w=Math.max(ctx.measureText(a+' &').width,ctx.measureText(b).width);
+        themeLabelBoxes.push({k,x0:lx-w/2-8,y0:ly-fs*1.3,x1:lx+w/2+8,y1:ly+fs*1.3});
+      } else {
+        ctx.fillText(nm,lx,ly);
+        w=ctx.measureText(nm).width;
+        themeLabelBoxes.push({k,x0:lx-w/2-8,y0:ly-fs*0.8,x1:lx+w/2+8,y1:ly+fs*0.8});
+      }
+    }
+  });
+
+  nodes.forEach(n=>{ const [sx,sy]=toScreen(n.x,n.y); n.sx=sx; n.sy=sy; });
+  links.forEach(l=>{
+    if(!nodeVisible(l.a)||!nodeVisible(l.b)) return;
+    const focus=hoverId||selectedId;
+    const inAct = act && (l.a.id===focus||l.b.id===focus);
+    const isVS=l.kind==='vs';
+    let alpha=isVS?0.7:(l.kind==='cc'?0.15:0.08);
+    if(act){ alpha = inAct?(isVS?1:0.55):alpha*(isVS?0.35:0.18); }
+    else if(spotTheme){ alpha = (inTheme(l.a,spotTheme)&&inTheme(l.b,spotTheme)) ? Math.min(alpha*2.2,1) : alpha*0.15; }
+    if(isVS){ ctx.strokeStyle=hexA('#C7364C',alpha); ctx.lineWidth=inAct?2.4:1.8; ctx.setLineDash([6,4]); }
+    else if(inAct){ const c=l.a.type==='c'?THEMES[l.a.t].color:(l.b.type==='c'?THEMES[l.b.t].color:'#232833');
+      ctx.strokeStyle=hexA(c,alpha); ctx.lineWidth=1.4; }
+    else { ctx.strokeStyle=`rgba(100,112,135,${alpha})`; ctx.lineWidth=1; }
+    ctx.beginPath(); ctx.moveTo(l.a.sx,l.a.sy); ctx.lineTo(l.b.sx,l.b.sy); ctx.stroke();
+    if(isVS) ctx.setLineDash([]);
+  });
+
+  const labelJobs=[];
+  nodes.forEach(n=>{
+    if(!nodeVisible(n)) return;
+    const r=nodeR(n);
+    const isFocus=n.id===hoverId||n.id===selectedId;
+    let alpha=1;
+    if(act&&!act.has(n.id)) alpha=0.14;
+    else if(spotTheme&&!inTheme(n,spotTheme)) alpha=0.15;
+    const col=nodeColor(n);
+    if(n.type==='s'){
+      ctx.fillStyle=hexA('#FFFFFF',alpha);
+      ctx.strokeStyle=hexA(col,alpha*0.95); ctx.lineWidth=1.7;
+      ctx.beginPath(); ctx.arc(n.sx,n.sy,r,0,7); ctx.fill(); ctx.stroke();
+      ctx.fillStyle=hexA(col,alpha);
+      ctx.font=`700 ${Math.max(8.5,r*0.9)}px ${MONO}`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(n.n,n.sx,n.sy+0.5);
+    } else {
+      if(isFocus){ ctx.fillStyle=hexA(col,0.15);
+        ctx.beginPath(); ctx.arc(n.sx,n.sy,r+8,0,7); ctx.fill(); }
+      ctx.fillStyle=hexA(col,alpha);
+      ctx.beginPath(); ctx.arc(n.sx,n.sy,r,0,7); ctx.fill();
+    }
+    if(isFocus){ ctx.strokeStyle='rgba(22,24,29,0.75)'; ctx.lineWidth=1.4;
+      ctx.beginPath(); ctx.arc(n.sx,n.sy,r+3.5,0,7); ctx.stroke(); }
+    labelJobs.push({n,r,alpha,col,isFocus,inAct:act?act.has(n.id):false});
+  });
+
+  labelJobs.sort((a,b)=>{
+    const pa=(a.isFocus?4:0)+(a.inAct?2:0)+(a.n.type==='s'?1:0);
+    const pb=(b.isFocus?4:0)+(b.inAct?2:0)+(b.n.type==='s'?1:0);
+    if(pa!==pb) return pb-pa; return b.n.deg-a.n.deg;
+  });
+  const placed=[];
+  labelJobs.forEach(j=>{
+    const n=j.n;
+    if(j.alpha<0.2 && !j.isFocus) return;
+    const fs=n.type==='s'?11.5:11;
+    ctx.font=`${n.type==='s'?'700':'600'} ${fs}px ${MONO}`;
+    const txt=n.type==='s'?n.name.toUpperCase():n.name;
+    const w=ctx.measureText(txt).width;
+    const lx=n.sx+j.r+6, ly=n.sy;
+    const box={x:lx-2,y:ly-fs*0.72,w:w+4,h:fs*1.45};
+    if(!j.isFocus && placed.some(p=>!(box.x>p.x+p.w||p.x>box.x+box.w||box.y>p.y+p.h||p.y>box.y+box.h))) return;
+    if(box.x>W||box.x+box.w<0||box.y>H||box.y+box.h<0) return;
+    placed.push(box);
+    ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillStyle='rgba(255,255,255,0.85)';
+    ctx.fillRect(box.x,box.y,box.w,box.h);
+    if(j.isFocus||j.inAct) ctx.fillStyle = n.type==='s' ? '#16181D' : hexA(j.col,1);
+    else ctx.fillStyle = n.type==='s' ? hexA('#3A4150',0.9*j.alpha) : hexA(j.col,0.9*j.alpha);
+    ctx.fillText(txt,lx,ly);
+  });
+}
+
+/* ---------- interaction ---------- */
+let dragging=false,px=0,py=0,moved=0,pinchD=0,pinching=false,pinchMX=0,pinchMY=0,touchPan=false,lastTX=0,lastTY=0;
+stage.addEventListener('pointerdown',e=>{
+  if(e.button!==0&&e.pointerType==='mouse')return;
+  if(pinching||touchPan)return; // a two-finger pinch / one-finger touch-pan owns the gesture — don't also start a pointer pan
+  dragging=true;moved=0;px=e.clientX;py=e.clientY;
+  stage.classList.add('dragging'); stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove',e=>{
+  if(pinching||touchPan)return; // suppress pointer pan/hover while a touch gesture owns the map
+  if(dragging){
+    const dx=e.clientX-px,dy=e.clientY-py; moved+=Math.abs(dx)+Math.abs(dy);
+    cam.x-=dx/cam.z; cam.y-=dy/cam.z; camT=null; px=e.clientX;py=e.clientY; dirty=true;
+  } else {
+    const id=pick(e.clientX,e.clientY);
+    const tk=id?null:pickThemeLabel(e.clientX,e.clientY);
+    if(id!==hoverId||tk!==hoverTheme){ hoverId=id; hoverTheme=tk;
+      stage.style.cursor=(id||tk)?'pointer':'grab'; dirty=true; }
+  }
+});
+function pickThemeLabel(mx,my){
+  for(const b of themeLabelBoxes){ if(mx>=b.x0&&mx<=b.x1&&my>=b.y0&&my<=b.y1) return b.k; }
+  return null;
+}
+stage.addEventListener('pointerleave',()=>{ if(hoverId||hoverTheme){ hoverId=null; hoverTheme=null; dirty=true; } stage.style.cursor='grab'; });
+stage.addEventListener('pointerup',e=>{
+  stage.classList.remove('dragging');
+  if(dragging&&moved<6){
+    const id=pick(e.clientX,e.clientY);
+    if(id) select(id);
+    else{
+      const tk=pickThemeLabel(e.clientX,e.clientY);
+      if(tk) selectTheme(tk); // theme labels open the theme page
+      else if(selectedId||selTheme) deselect();
+    }
+  }
+  dragging=false;
+});
+stage.addEventListener('dblclick',e=>{
+  const id=pick(e.clientX,e.clientY);
+  if(!id) resetView();
+});
+stage.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const f=Math.exp(-e.deltaY*0.000805); // proportional to scroll amount — gentle on trackpads and wheels (sensitivity +15%)
+  const z2=Math.max(minZoom(),Math.min(4,cam.z*f));
+  const [wx,wy]=toWorld(e.clientX,e.clientY);
+  cam.x=wx-(e.clientX-centerX())/z2;
+  cam.y=wy-(e.clientY-centerY())/z2;
+  cam.z=z2; camT=null; dirty=true;
+},{passive:false});
+function pinchMid(e){ return [(e.touches[0].clientX+e.touches[1].clientX)/2,(e.touches[0].clientY+e.touches[1].clientY)/2]; }
+function pinchDist(e){ return Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); }
+function pinchBaseline(e){ pinchD=pinchDist(e); [pinchMX,pinchMY]=pinchMid(e); } // reset the frame-to-frame reference
+stage.addEventListener('touchstart',e=>{ if(e.touches.length>=2){
+  pinching=true; touchPan=false; dragging=false; stage.classList.remove('dragging'); camT=null; pinchBaseline(e); }},{passive:true});
+stage.addEventListener('touchmove',e=>{
+  if(e.touches.length>=2){
+    const d=pinchDist(e), [mx,my]=pinchMid(e);
+    if(pinchD>0){
+      const z2=Math.max(minZoom(),Math.min(4,cam.z*(d/pinchD)));
+      // anchor the world point under the PREVIOUS midpoint, then drop it under the CURRENT midpoint:
+      // distance change -> zoom about the fingers, midpoint movement -> pan. both at once, freely.
+      const [wx,wy]=toWorld(pinchMX,pinchMY);
+      cam.z=z2;
+      cam.x=wx-(mx-centerX())/z2;
+      cam.y=wy-(my-centerY())/z2;
+      camT=null; dirty=true;
+    }
+    pinchD=d; pinchMX=mx; pinchMY=my; e.preventDefault();
+  } else if(e.touches.length===1 && touchPan){
+    // gesture dropped to one finger — keep panning with it (pointer events for this finger were
+    // cancelled by the pinch's preventDefault, so drive the pan straight off touchmove)
+    const t=e.touches[0];
+    cam.x-=(t.clientX-lastTX)/cam.z; cam.y-=(t.clientY-lastTY)/cam.z;
+    lastTX=t.clientX; lastTY=t.clientY; camT=null; dirty=true; e.preventDefault();
+  }
+},{passive:false});
+function endTouch(e){
+  if(e.touches.length>=2){ pinchBaseline(e); return; }        // 3->2 etc: re-baseline the survivors
+  if(e.touches.length===1){                                    // 2->1: hand off to a one-finger pan, no re-touch
+    pinching=false; pinchD=0; dragging=false; touchPan=true;
+    lastTX=e.touches[0].clientX; lastTY=e.touches[0].clientY; return;
+  }
+  pinchD=0; pinching=false; touchPan=false;                    // all fingers up
+}
+stage.addEventListener('touchend',endTouch,{passive:true});
+stage.addEventListener('touchcancel',endTouch,{passive:true});
+
+function pick(mx,my){
+  let best=null,bd=1e9;
+  nodes.forEach(n=>{
+    if(!nodeVisible(n))return;
+    const r=Math.max(nodeR(n),7)+4;
+    const d=(n.sx-mx)**2+(n.sy-my)**2;
+    if(d<r*r&&d<bd){bd=d;best=n.id;}
+  });
+  return best;
+}
+
+function frame(){
+  if(camT){
+    cam.x+=(camT.x-cam.x)*0.16; cam.y+=(camT.y-cam.y)*0.16; cam.z+=(camT.z-cam.z)*0.16;
+    if(Math.abs(camT.x-cam.x)<0.4&&Math.abs(camT.y-cam.y)<0.4&&Math.abs(camT.z-cam.z)<0.002) camT=null;
+    dirty=true;
+  }
+  if(dirty&&view==='map'){ draw(); dirty=false; }
+  requestAnimationFrame(frame);
+}
+goTo(fit(),true);
+draw(); dirty=false;
+requestAnimationFrame(frame);
+
+/* ============================================================
+   UI — single left panel (home ⇄ detail), walks, matrix
+   ============================================================ */
+const panel=document.getElementById('panelScroll');
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+
+/* option 2.5: strong tint — 20% wash, solid-ish border, deep-tinted text */
+function shade(hex,f){ // darken toward black by factor f
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgb(${Math.round(r*f)},${Math.round(g*f)},${Math.round(b*f)})`;
+}
+function tintStyle(hex){
+  return `background:${hexA(hex,0.18)};border-color:${hexA(hex,0.75)};color:${shade(hex,0.62)}`;
+}
+function chipHTML(id){
+  const n=byId[id]; if(!n)return'';
+  if(n.type==='s') return `<button class="chip src" data-go="${id}" style="background:rgba(35,40,51,.08);border-color:rgba(35,40,51,.6);color:#16181D">${n.n}. ${esc(n.name)}</button>`;
+  return `<button class="chip" data-go="${id}" style="${tintStyle(THEMES[n.t].color)}">${esc(n.name)}</button>`;
+}
+function shortAuthors(s){
+  return s.authors.split(',')[0].split(' &')[0]+(s.authors.includes(',')||s.authors.includes('&')?' et al.':'');
+}
+
+/* ---------- home ---------- */
+function showHome(){
+  selectedId=null; dirty=true; syncMatrixSel();
+  panel.innerHTML=`
+   <div class="intro">
+    <div class="sect" style="border-top:0;margin-top:0;padding-top:2px">DESCRIPTION</div>
+    <p>80,000 Hours recommends reading the following <a class="plink" href="https://80000hours.org/articles/11-essential-resources-ai-risk/" target="_blank" rel="noopener">11 resources</a> to get up to speed on the most influential ideas shaping the AGI risk debate. I built this site to visualize the overall themes and shared concepts.</p>
+    <p>Click one of the titles below to walk through its key concepts, or one of the nodes in the web to learn about a particular idea.</p>
+    <p style="font-size:11.5px;line-height:1.5;color:var(--muted)">Note: this is a personal project with no official association with 80,000 Hours.</p>
+    <div class="sect">READINGS</div>
+    <div id="homeReads">${SOURCES.map(s=>{
+      const done=doneWalks.has(s.id);
+      return `<button class="rd${done?' done':''}" data-go="${s.id}">
+        <span class="num">${s.n}</span>
+        <span class="rb"><b>${esc(s.name)}</b><span>${esc(shortAuthors(s))} · ${s.year}</span></span>
+        <span class="mark">${done?'✓':'▸'}</span></button>`;}).join('')}</div>
+    <div class="sect">THEMES</div>
+    <div id="legend">
+      ${Object.entries(THEMES).map(([k,t])=>{
+        const count=CONCEPTS.filter(c=>c.t===k).length;
+        const srcN=SOURCES.filter(s=>s.concepts.some(cid=>byId[cid]&&byId[cid].t===k)).length;
+        return `<div class="lg${themeOn[k]?'':' off'}" data-t="${k}" style="${tintStyle(t.color)}">${t.name}<span class="n" style="color:inherit;opacity:.65">${count} concepts · ${srcN} sources</span></div>`;}).join('')}
+    </div>
+   </div>`;
+}
+
+/* ---------- detail ---------- */
+function renderNode(id){
+  const n=byId[id]; if(!n)return;
+  if(n.type==='s'){
+    const stops=WALKS[n.id]||[];
+    const relC=n.concepts.filter(c=>byId[c]);
+    const done=doneWalks.has(n.id);
+    panel.innerHTML=`
+      ${navRowHTML()}
+      <h2 class="title"><a class="titleLink" href="${n.url}" target="_blank" rel="noopener">${esc(n.name)} <span class="tl">↗</span></a></h2>
+      <div class="byline">${esc(n.authors)}${n.org?' · '+esc(n.org):''} · ${n.year}</div>
+      <div class="ctaRow">
+        <button class="walkBtn${done?' done':''}" data-walk="${n.id}">${done?`WALK ITS ${stops.length} KEY CONCEPTS <span class="glyph">✓</span>`:`WALK ITS ${stops.length} KEY CONCEPTS <span class="glyph">▶</span>`}</button>
+        <a class="linkout" href="${n.url}" target="_blank" rel="noopener">READ ↗</a>
+      </div>
+      <p class="blurb">${esc(n.blurb)}</p>
+      <div class="sect">Core claims</div>
+      <ul class="claims">${n.claims.map(c=>`<li>${esc(c)}</li>`).join('')}</ul>
+      <div class="sect">Concepts it anchors</div>
+      <div class="chips">${relC.map(chipHTML).join('')}</div>
+      ${navRowHTML(true)}`;
+  } else {
+    const th=THEMES[n.t];
+    const srcs=(n.src||[]).filter(s=>byId[s]).sort((a,b)=>byId[a].n-byId[b].n);
+    const tens=vsN[n.id]?[...vsN[n.id]]:[];
+    const rels=[...neighbors[n.id]].filter(x=>byId[x].type==='c'&&!tens.includes(x));
+    panel.innerHTML=`
+      ${navRowHTML()}
+      <button class="eyebrow" data-theme-go="${n.t}" style="${tintStyle(th.color)};cursor:pointer" title="Open theme">${th.name.toUpperCase()}</button>
+      <h2 class="title">${esc(n.name)}</h2>
+      <p class="blurb" style="margin-top:8px">${esc(n.b)}</p>
+      ${n.crux?`<div class="crux"><div class="cx-head">THE CRUX</div><p>${esc(n.crux)}</p></div>`:''}
+      <div class="sect">Where it's argued (${srcs.length} reading${srcs.length!==1?'s':''})</div>
+      <div class="chips">${srcs.map(chipHTML).join('')}</div>
+      ${tens.length?`<div class="sect" style="color:#E85D6A">In tension with</div>
+      <div class="chips">${tens.map(chipHTML).join('')}</div>`:''}
+      <div class="sect">Adjacent concepts</div>
+      <div class="chips">${rels.map(chipHTML).join('')}</div>
+      ${navRowHTML(true)}`;
+  }
+  panel.scrollTop=0;
+}
+/* history of visited pages (concepts, readings, themes) for the BACK button */
+const navStack=[];
+function curEntry(){ return selectedId?{n:selectedId}:(selTheme?{t:selTheme}:null); }
+function pushNav(){ const c=curEntry(); if(!c) return;
+  const top=navStack[navStack.length-1];
+  if(top&&top.n===c.n&&top.t===c.t) return;
+  navStack.push(c); if(navStack.length>60) navStack.shift(); }
+function navBack(){
+  const e=navStack.pop(); if(!e) return;
+  if(e.n) select(e.n,false); else selectTheme(e.t,false);
+}
+function navRowHTML(bottom){
+  return `<div class="backRow"${bottom?' style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line)"':''}><button class="backBtn" data-back-home>◀ HOME</button>${navStack.length?'<button class="backBtn" data-back-prev>◀ BACK</button>':''}</div>`;
+}
+function selectTheme(k,push=true){
+  if(push&&!walk&&k===selTheme&&!selectedId) return; // re-clicking the theme you're already on isn't a new nav
+  if(walk) walk=null;
+  if(push) pushNav();
+  selectedId=null; selTheme=k; hoverTheme=null; dirty=true;
+  renderTheme(k);
+  if(isMobile()&&panelCollapsed){ panelCollapsed=false; panelEl().classList.remove('collapsed'); }
+  const cl=clusters[k];
+  const avail=Math.min((isMobile()?W:W-PANEL_W-16),H)-170;
+  if(view==='map') goTo({x:cl.x,y:cl.y,z:Math.max(0.45,Math.min(1.1,avail/(2*(cl.r+90))))});
+}
+function renderTheme(k){
+  const th=THEMES[k];
+  const cs=CONCEPTS.filter(c=>c.t===k);
+  const srcCount={};
+  cs.forEach(c=>(c.src||[]).forEach(s=>srcCount[s]=(srcCount[s]||0)+1));
+  const topSrcs=Object.entries(srcCount).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([sid])=>sid);
+  panel.innerHTML=`
+    ${navRowHTML()}
+    <h2 class="title">${esc(th.name)}</h2>
+    <p class="blurb" style="margin-top:8px">${esc(th.desc)}</p>
+    <div class="sect">Its ${cs.length} concepts</div>
+    <div class="chips">${cs.map(c=>chipHTML(c.id)).join('')}</div>
+    <div class="sect">Readings that anchor it</div>
+    <div class="chips">${topSrcs.map(chipHTML).join('')}</div>
+    <div class="sect">Other themes</div>
+    <div class="chips">${Object.entries(THEMES).filter(([ok])=>ok!==k).map(([ok,ot])=>
+      `<button class="chip" data-theme-go="${ok}" style="${tintStyle(ot.color)}">${esc(ot.name)}</button>`).join('')}</div>
+    ${navRowHTML(true)}`;
+  panel.scrollTop=0;
+}
+function select(id,push=true){
+  if(push&&!walk&&id===selectedId) return; // re-clicking the concept you're already on isn't a new nav
+  if(push) pushNav();
+  selectedId=id; selTheme=null; dirty=true;
+  renderNode(id);
+  if(isMobile()&&panelCollapsed){ panelCollapsed=false; panelEl().classList.remove('collapsed'); }
+  const n=byId[id];
+  if(view==='map'){
+    const z=Math.max(cam.z,0.85);
+    goTo({x:n.x,y:n.y,z});
+  } else syncMatrixSel(true);
+}
+function deselect(){ selectedId=null; selTheme=null; navStack.length=0; dirty=true; showHome(); if(view==='map') goTo(fit()); }
+function goBack(){
+  if(walk){ endWalk(); return; }
+  const fromTheme=!!selTheme;
+  deselect(); syncMatrixSel();
+  if(fromTheme){ // land back on the themes section, not the top
+    const lg=document.getElementById('legend');
+    if(lg) panel.scrollTop=lg.offsetTop-60;
+  }
+}
+/* full reset: everything visible, nothing selected, camera fit */
+function resetView(){
+  Object.keys(THEMES).forEach(k=>themeOn[k]=true);
+  hoverId=null; selectedId=null; selTheme=null; hoverTheme=null;
+  navStack.length=0;
+  applyMatrixFilter(); syncMatrixSel();
+  showHome(); // rebuilds the theme rows from themeOn
+  if(view==='map') goTo(fit());
+  dirty=true;
+}
+/* ---------- mobile bottom-sheet: collapse to reveal the map, expand to read ---------- */
+function reframe(){ // re-fit the camera to the current focus for the current visible area
+  if(view!=='map') return;
+  if(selectedId&&byId[selectedId]){ const n=byId[selectedId]; goTo({x:n.x,y:n.y,z:Math.max(cam.z,0.85)}); }
+  else if(selTheme&&clusters[selTheme]){ const cl=clusters[selTheme]; goTo({x:cl.x,y:cl.y,z:cam.z}); }
+  else goTo(fit());
+}
+function setPanelCollapsed(v){
+  if(!isMobile()) return;
+  panelCollapsed=v;
+  panelEl().classList.toggle('collapsed',v);
+  reframe();
+}
+(function wirePanelHandle(){
+  const h=document.getElementById('panelHandle'); if(!h) return;
+  let drag=null;
+  const collapsedT=()=>panelEl().offsetHeight-PANEL_PEEK;
+  h.addEventListener('pointerdown',e=>{
+    if(!isMobile()) return;
+    drag={y:e.clientY,moved:0}; h.setPointerCapture(e.pointerId);
+    panelEl().style.transition='none';
+  });
+  h.addEventListener('pointermove',e=>{
+    if(!drag) return;
+    drag.moved=e.clientY-drag.y;
+    const ct=collapsedT();
+    const t=Math.max(0,Math.min(ct,(panelCollapsed?ct:0)+drag.moved));
+    panelEl().style.transform='translateY('+t+'px)';
+  });
+  const end=e=>{
+    if(!drag) return;
+    const moved=drag.moved; drag=null;
+    panelEl().style.transition=''; panelEl().style.transform='';
+    // very sensitive & biased toward the new action: a tiny nudge down hides, a tiny nudge up shows, a tap toggles
+    if(Math.abs(moved)<=6) setPanelCollapsed(!panelCollapsed);
+    else setPanelCollapsed(moved>0);
+  };
+  h.addEventListener('pointerup',end);
+  h.addEventListener('pointercancel',end);
+})();
+function backLabel(){ return walk ? '◀ EXIT WALK' : '◀ HOME'; }
+
+/* panel delegation: back, walk, read, walk-nav, theme filter, node chips */
+panel.addEventListener('click',e=>{
+  if(e.target.closest('[data-back-home]')){ if(walk) walk=null; goBack(); return; }
+  if(e.target.closest('[data-back-prev]')){ navBack(); return; }
+  if(e.target.closest('[data-back]')){ goBack(); return; }
+  const wb=e.target.closest('[data-walk]'); if(wb){ startWalk(wb.dataset.walk); return; }
+  const tn=e.target.closest('[data-tnav]'); if(tn){ walkNav(+tn.dataset.tnav); return; }
+  const lg=e.target.closest('.lg[data-t]');
+  if(lg){ selectTheme(lg.dataset.t); return; }
+  const tgo=e.target.closest('[data-theme-go]');
+  if(tgo){ selectTheme(tgo.dataset.themeGo); return; }
+  const b=e.target.closest('[data-go]'); if(b) select(b.dataset.go);
+});
+/* hover in the panel previews on the map: readings/chips highlight their node, theme rows spotlight their cluster */
+panel.addEventListener('mouseover',e=>{
+  const g=e.target.closest('[data-go]');
+  if(g&&byId[g.dataset.go]){ hoverId=g.dataset.go; dirty=true; return; }
+  const lg=e.target.closest('.lg[data-t]');
+  if(lg){ hoverTheme=lg.dataset.t; dirty=true; }
+});
+panel.addEventListener('mouseout',e=>{
+  const g=e.target.closest('[data-go]');
+  if(g&&hoverId===g.dataset.go){ hoverId=null; dirty=true; }
+  const lg=e.target.closest('.lg[data-t]');
+  if(lg&&hoverTheme===lg.dataset.t){ hoverTheme=null; dirty=true; }
+});
+
+/* ---------- walks ---------- */
+let walk=null, walkIdx=0;
+function startWalk(sid){
+  const stops=WALKS[sid]; if(!stops)return;
+  walk={src:byId[sid], stops}; walkIdx=0; setView('map');
+  showWalkStop();
+}
+function showWalkStop(){
+  const st=walk.stops[walkIdx];
+  select(st.id,false); injectNote();
+}
+function injectNote(){
+  const st=walk.stops[walkIdx];
+  const s=walk.src;
+  // the reading's header, exactly as it appears on its own page, stays above the walk box
+  const head=document.createElement('div');
+  head.innerHTML=`<h2 class="title"><a class="titleLink" href="${s.url}" target="_blank" rel="noopener">${esc(s.name)} <span class="tl">↗</span></a></h2>
+    <div class="byline">${esc(s.authors)}${s.org?' · '+esc(s.org):''} · ${s.year}</div>`;
+  const div=document.createElement('div'); div.className='trailNote';
+  div.innerHTML=`<p>${esc(st.note)}</p>
+    <div class="tn-nav">
+    <button data-tnav="-1" class="${walkIdx>0?'':'tn-ghost'}">← PREV</button>
+    <span class="tn-count">${walkIdx+1} / ${walk.stops.length}</span>
+    <button data-tnav="1">${walkIdx<walk.stops.length-1?'NEXT →':'FINISH ✓'}</button></div>`;
+  panel.prepend(div);
+  panel.prepend(head);
+  // top row: HOME and EXIT WALK side by side
+  const bb=panel.querySelector('.backBtn'); if(bb) bb.remove();
+  const row=document.createElement('div'); row.className='backRow';
+  row.innerHTML=`<button class="backBtn" data-back-home>◀ HOME</button>
+    <button class="backBtn" data-back>✕ EXIT WALK</button>`;
+  panel.prepend(row);
+  panel.scrollTop=0;
+}
+function walkNav(d){
+  if(!walk)return;
+  const ni=walkIdx+d;
+  if(ni>=walk.stops.length){ doneWalks.add(walk.src.id); saveWalks(); endWalk(); return; }
+  if(ni<0)return;
+  walkIdx=ni; showWalkStop();
+}
+function endWalk(){
+  const sid=walk?walk.src.id:null;
+  walk=null;
+  if(sid){ select(sid,false); } else deselect();
+}
+
+/* ---------- search ---------- */
+const search=document.getElementById('search'), results=document.getElementById('searchResults');
+let srIndex=-1;
+function runSearch(){
+  const q=search.value.trim().toLowerCase();
+  if(!q){ results.classList.remove('open'); return; }
+  const nodeHits=nodes.filter(n=>{
+    const hay=(n.name+' '+(n.b||n.blurb||'')+' '+(n.authors||'')).toLowerCase();
+    return hay.includes(q);
+  }).map(n=>({kind:'node', id:n.id, name:n.name,
+    col:n.type==='s'?'#232833':THEMES[n.t].color,
+    tag:n.type==='s'?'READING '+n.n:THEMES[n.t].name.toUpperCase()}));
+  const themeHits=Object.entries(THEMES).filter(([k,t])=>
+    (t.name+' '+(t.desc||'')).toLowerCase().includes(q)
+  ).map(([k,t])=>({kind:'theme', id:k, name:t.name, col:t.color, tag:'THEME'}));
+  const hits=[...themeHits,...nodeHits].sort((a,b)=>{
+    const an=a.name.toLowerCase().indexOf(q), bn=b.name.toLowerCase().indexOf(q);
+    return (an<0?99:an)-(bn<0?99:bn);
+  }).slice(0,9);
+  srIndex=-1;
+  results.innerHTML=hits.map(h=>
+    `<button class="sr" data-kind="${h.kind}" data-go="${h.id}"><span class="dot" style="background:${h.col}"></span>${esc(h.name)}<small>${h.tag}</small></button>`
+  ).join('')||'<div style="padding:10px 12px;font-size:12px;color:var(--faint)">no matches</div>';
+  results.classList.add('open');
+}
+function goResult(el){ if(el.dataset.kind==='theme') selectTheme(el.dataset.go); else select(el.dataset.go); }
+search.addEventListener('input',runSearch);
+search.addEventListener('keydown',e=>{
+  const items=[...results.querySelectorAll('.sr')];
+  if(e.key==='ArrowDown'){ srIndex=Math.min(srIndex+1,items.length-1); e.preventDefault(); }
+  else if(e.key==='ArrowUp'){ srIndex=Math.max(srIndex-1,0); e.preventDefault(); }
+  else if(e.key==='Enter'){ const t=items[srIndex]||items[0]; if(t){ goResult(t); results.classList.remove('open'); search.blur(); } return; }
+  else if(e.key==='Escape'){ results.classList.remove('open'); search.blur(); return; }
+  items.forEach((el,i)=>el.classList.toggle('active',i===srIndex));
+});
+results.addEventListener('click',e=>{ const b=e.target.closest('[data-go]');
+  if(b){ goResult(b); results.classList.remove('open'); search.value=''; }});
+document.addEventListener('click',e=>{ if(!e.target.closest('#searchWrap')) results.classList.remove('open'); });
+document.addEventListener('keydown',e=>{
+  if(e.key==='/'&&document.activeElement!==search){ e.preventDefault(); search.focus(); }
+  if(e.key==='Escape'&&document.activeElement!==search){
+    if(walk) endWalk(); else { setView('map'); resetView(); } }
+  if(walk&&document.activeElement!==search){
+    if(e.key==='ArrowRight'){ e.preventDefault(); walkNav(1); }
+    if(e.key==='ArrowLeft'){ e.preventDefault(); walkNav(-1); }
+  }
+});
+
+/* ---------- matrix ---------- */
+const mtable=document.getElementById('mtable'), matrixWrap=document.getElementById('matrixWrap');
+const SHORT={s1:'MacAskill & Moorhouse',s2:'AI 2027',s3:'Situational Awareness',s4:'Erdil (Epoch)',
+ s5:'Most Important Century',s6:'Cotra × Narayanan',s7:'Epoch: Scaling to 2030',s8:'Carlsmith',
+ s9:'Gradual Disempowerment',s10:'Taking AI Welfare Seriously',s11:'Machines of Loving Grace'};
+function buildMatrix(){
+  let html='<thead><tr><th class="cname">CONCEPT ▾ / READING ▸</th>';
+  SOURCES.forEach(s=>{
+    html+=`<th data-go="${s.id}" title="${esc(s.name)} — ${esc(s.authors)} (${s.year})"><span class="mh"><b>${String(s.n).padStart(2,'0')}</b>${esc(SHORT[s.id])}</span></th>`;
+  });
+  html+='</tr></thead>';
+  Object.entries(THEMES).forEach(([k,t])=>{
+    html+=`<tbody data-t="${k}" style="--tint:${tintSolid(t.color,0.05)}"><tr class="throw"><td class="cname" data-theme-go="${k}" style="cursor:pointer"><span class="mth" style="${tintStyle(t.color)}">${t.name.toUpperCase()}</span></td><td colspan="${SOURCES.length}"></td></tr>`;
+    CONCEPTS.filter(c=>c.t===k).forEach(c=>{
+      html+=`<tr data-cid="${c.id}"><td class="cname" data-go="${c.id}" style="color:${shade(t.color,0.62)}">${esc(c.name)}</td>`;
+      SOURCES.forEach(s=>{
+        html+= covers.has(c.id+'|'+s.id)
+          ? `<td><span class="cdot" data-go="${c.id}" style="background:${t.color}" title="${esc(c.name)} · in ${esc(s.name)}"></span></td>`
+          : `<td><span class="cd-empty">·</span></td>`;
+      });
+      html+=`</tr>`;
+    });
+    html+='</tbody>';
+  });
+  mtable.innerHTML=html;
+}
+buildMatrix();
+mtable.addEventListener('click',e=>{
+  const tgo=e.target.closest('[data-theme-go]'); if(tgo){ selectTheme(tgo.dataset.themeGo); return; }
+  const g=e.target.closest('[data-go]'); if(g) select(g.dataset.go);
+});
+function applyMatrixFilter(){
+  mtable.querySelectorAll('tbody').forEach(tb=>{
+    tb.style.display=themeOn[tb.dataset.t]?'':'none';
+  });
+}
+function syncMatrixSel(scroll){
+  mtable.querySelectorAll('tr.sel').forEach(r=>r.classList.remove('sel'));
+  if(!selectedId) return;
+  const row=mtable.querySelector(`tr[data-cid="${selectedId}"]`);
+  if(row){ row.classList.add('sel'); if(scroll&&view==='matrix') row.scrollIntoView({block:'nearest'}); }
+}
+
+/* ---------- view tabs ---------- */
+const tabMap=document.getElementById('tabMap'), tabMatrix=document.getElementById('tabMatrix');
+function setView(v){
+  view=v;
+  tabMap.classList.toggle('on',v==='map');
+  tabMatrix.classList.toggle('on',v==='matrix');
+  matrixWrap.classList.toggle('show',v==='matrix');
+  stage.style.display=v==='map'?'':'none';
+  document.getElementById('resetHint').style.display=v==='map'?'':'none';
+  if(v==='map') dirty=true; else syncMatrixSel(true);
+}
+tabMap.addEventListener('click',()=>setView('map'));
+tabMatrix.addEventListener('click',()=>setView('matrix'));
+document.getElementById('brandHome').addEventListener('click',()=>{
+  if(walk) endWalk(); setView('map'); resetView();
+});
+
+showHome();
+/* ===== 2026-07-06 redesign: saturated theme tints + matrix cleanup ===== */
+tintStyle=function(hex){return `background:${hexA(hex,0.26)};border-color:${hexA(hex,0.85)};color:${shade(hex,0.60)}`;};
+buildMatrix();
+document.querySelectorAll('#mtable tbody[data-t]').forEach(tb=>{ if(THEMES[tb.dataset.t]) tb.style.setProperty('--tc',THEMES[tb.dataset.t].color); });
+{ const hc=document.querySelector('#mtable thead th.cname'); if(hc) hc.textContent=''; }
+showHome();
+</script>
+
+
+</body>
+</html>

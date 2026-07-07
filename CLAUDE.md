@@ -19,6 +19,10 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
 - `capture-card.mjs` — regenerates the portfolio thumbnail (puppeteer-core borrowed from
   `~/projects/good-days-mobile-design/node_modules`; hides panel+header, label-aware refit, web only,
   NO cursor/hover state). Needs preview server running.
+- `HISTORY.md` + `history/` — archive of every deployed version (v01 = original from-scratch dark build,
+  2026-07-05), recovered from the `shailenparmar.com` deploy git history because the early sessions predate
+  this repo. Each `history/vNN_*.html` is a complete runnable snapshot. Regenerate/extend by extracting new
+  deploy commits from the site repo the same way.
 
 ## Architecture (all inside app.html)
 
