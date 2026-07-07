@@ -1162,7 +1162,7 @@ function renderNode(id){
       <h2 class="title">${esc(n.name)}</h2>
       <p class="blurb" style="margin-top:8px">${esc(n.b)}</p>
       ${n.crux?`<div class="crux"><div class="cx-head">THE CRUX</div><p>${esc(n.crux)}</p></div>`:''}
-      <div class="sect">Where it's argued (${srcs.length} reading${srcs.length!==1?'s':''})</div>
+      <div class="sect">Where it's argued</div>
       <div class="chips">${srcs.map(chipHTML).join('')}</div>
       ${tens.length?`<div class="sect" style="color:#E85D6A">In tension with</div>
       <div class="chips">${tens.map(chipHTML).join('')}</div>`:''}
