@@ -1100,6 +1100,8 @@ function shortAuthors(s){
 }
 
 /* ---------- home ---------- */
+// remember where the home panel was scrolled; restore it on ← back, clear it on esc / refresh
+let savedHomeScroll=0, homeShown=false;
 function showHome(){
   selectedId=null; dirty=true; syncMatrixSel();
   panel.innerHTML=`
@@ -1123,11 +1125,13 @@ function showHome(){
         return `<div class="lg${themeOn[k]?'':' off'}" data-t="${k}" style="${tintStyle(t.color)}">${t.name}<span class="n" style="color:inherit;opacity:.65">${count} concepts · ${srcN} sources</span></div>`;}).join('')}
     </div>
    </div>`;
+  homeShown=true;
 }
 
 /* ---------- detail ---------- */
 function renderNode(id){
   const n=byId[id]; if(!n)return;
+  if(homeShown){ savedHomeScroll=panel.scrollTop; homeShown=false; } // remember home scroll before leaving it
   if(n.type==='s'){
     const stops=WALKS[n.id]||[];
     const relC=n.concepts.filter(c=>byId[c]);
@@ -1193,6 +1197,7 @@ function selectTheme(k,push=true){
   if(view==='map') goTo({x:cl.x,y:cl.y,z:Math.max(0.45,Math.min(1.1,avail/(2*(cl.r+90))))});
 }
 function renderTheme(k){
+  if(homeShown){ savedHomeScroll=panel.scrollTop; homeShown=false; } // remember home scroll before leaving it
   const th=THEMES[k];
   const cs=CONCEPTS.filter(c=>c.t===k);
   const srcCount={};
@@ -1224,7 +1229,7 @@ function select(id,push=true){
     goTo({x:n.x,y:n.y,z});
   } else syncMatrixSel(true);
 }
-function deselect(){ selectedId=null; selTheme=null; navStack.length=0; dirty=true; showHome(); if(view==='map') goTo(fit()); }
+function deselect(){ selectedId=null; selTheme=null; navStack.length=0; dirty=true; showHome(); panel.scrollTop=savedHomeScroll; if(view==='map') goTo(fit()); }
 function goBack(){
   if(walk){ endWalk(); return; }
   const fromTheme=!!selTheme;
@@ -1240,7 +1245,7 @@ function resetView(){
   hoverId=null; selectedId=null; selTheme=null; hoverTheme=null;
   navStack.length=0;
   applyMatrixFilter(); syncMatrixSel();
-  showHome(); // rebuilds the theme rows from themeOn
+  savedHomeScroll=0; showHome(); panel.scrollTop=0; // esc = full reset: clear saved home scroll, back to top
   if(view==='map') goTo(fit());
   dirty=true;
 }
