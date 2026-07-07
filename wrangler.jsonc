@@ -4,9 +4,8 @@
   "assets": {
     "directory": "./domain-dist",
     "not_found_handling": "single-page-application"
-  },
-  "routes": [
-    { "pattern": "airiskweb.com", "custom_domain": true },
-    { "pattern": "www.airiskweb.com", "custom_domain": true }
-  ]
+  }
+  // domain routing is handled by a manual zone-level Workers Route (airiskweb.com/* -> this worker),
+  // set up directly in the Cloudflare dashboard — NOT by wrangler's own custom_domain feature (that
+  // needs DNS write access the deploy token doesn't have). Do not re-add a "routes" block here.
 }

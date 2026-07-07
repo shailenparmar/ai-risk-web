@@ -17,4 +17,4 @@ printf '\n</body>\n</html>\n' >> "$OUT"
 
 cd "$DIR"
 npx wrangler deploy
-echo "Deployed airiskweb Worker. Once airiskweb.com is attached as its Custom Domain in the Cloudflare dashboard, it will serve directly at https://airiskweb.com/"
+echo "Deployed: https://airiskweb.com/"
