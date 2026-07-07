@@ -24,20 +24,31 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
 
 - **Data:** `THEMES` (8, radial: Foundations center, 7 on a 560-radius ring, each with `desc`),
   `SOURCES` (11 readings: blurb, claims, concepts, url), `CONCEPTS` (67: blurb `b`, rel, src),
-  `VS` (9 opposition pairs → dashed red edges), `CRUX` (16 crux boxes), `WALKS` (per-reading ordered
-  stops with hand-written notes).
+  `VS` (13 opposition pairs → dashed red edges; audited 2026-07-06), `CRUX` (16 crux boxes), `WALKS`
+  (per-reading ordered stops with hand-written notes).
 - **Layout:** deterministic force sim (seeded PRNG, 420 iterations, frozen) → identical geography every visit.
   Theme labels positioned by `themeLabelPos()` — uniform gap beyond the cluster's outermost node in the
   label's own direction; per-theme overrides `la` (angle) / `lp` (pad). `fit()` includes label bboxes.
-- **Renderer:** 2D canvas, pan/zoom (wheel zoom `Math.exp(-deltaY*0.0007)` — DON'T make it faster),
+- **Renderer:** 2D canvas, pan/zoom (wheel zoom `Math.exp(-deltaY*0.000805)`, +15% per user 2026-07-06;
+  zoom-out floor = `minZoom()` = `fit().z*0.85`, i.e. only a slight touch past the esc/reset framing),
   hover/selection dimming, label collision by priority, theme labels are hover+click hit-tested
   (`themeLabelBoxes`).
-- **Panel (single, left, 392px):** home (description → readings → themes) ⇄ detail pages for
-  concepts / readings / themes. `select(id)`, `selectTheme(k)`, `navStack` history (← BACK), ← HOME.
+- **Panel (single, DOCKED left sidebar, 376px; `PANEL_W`=388):** flush full-height column (no floating
+  card), thin right divider, no shadow. Wordmark "AI RISK WEB" is the first *scrolling* line of the body
+  (`#panelScroll::before`; the floating header `.brand` is `display:none` on desktop) — scrolls off, never
+  overlays. Home (description → readings → themes) ⇄ detail pages. `select(id)`, `selectTheme(k)`,
+  `navStack` history (◀ BACK), ◀ HOME. Back/home buttons use ◀ (bigger head) and are bold. Reading numbers
+  render as circled badges matching the map source circles (plain 1..11, no zero-pad). Desktop redesign is
+  in an `@media (min-width:861px)` block appended INSIDE the main `<style>`; mobile (`max-width:860px`) keeps
+  the bottom-sheet. NOTE: two overrides (saturated `tintStyle`, matrix `--tc`/label strip) live in a small JS
+  block at the END of the main `<script>` (before `</script>`) — keep them inside the single script/style so
+  `check.mjs`'s greedy `<script>…</script>` regex still parses.
 - **Walks:** reading title+byline in dossier formatting above a blue note box; PREV / "n / N" / NEXT;
   arrow keys; Esc exits walk first.
-- **Matrix tab:** concepts × readings grid; tinted theme header pills (clickable → theme page),
-  horizontal short-name column headers (`SHORT` map), 11px dots.
+- **Matrix tab:** concepts × readings grid; tinted theme header pills (clickable → theme page); source
+  column headers are the reading name only (NO number, NO "CONCEPT / READING" label — reclaims vertical
+  space), 11.5px. Rows/hover/selected tint toward the row's own theme color via `--tc` (`color-mix`, not
+  blue). 6px corners (= search bar), `overscroll-behavior:none` (no rubber-band). 11px dots.
 
 ## Settled design decisions (user rulings — DO NOT relitigate)
 
@@ -47,7 +58,7 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
 4. Tabs say WEB | MATRIX (segmented control, white raised pill — NOT blue underline, "vibecodey").
 5. Reading-walks (per-source) not cross-source trails; counter word is "concept" never "stop".
 6. NO study features — no "mark as studied", no progress counters. Only walk-completion ✓ (localStorage `aira-walks`).
-7. Color system = "option 2.5": `tintStyle(hex)` → 18% wash + 75% border + `shade(hex,0.62)` text.
+7. Color system = "option 2.5", saturation bumped 2026-07-06: `tintStyle(hex)` → 26% wash + 85% border + `shade(hex,0.60)` text (was 18/75/0.62 — user wanted more pop).
    Used for: theme sidebar rows, theme tag on concept pages (clickable), concept chips, matrix theme pills.
 8. Themes are first-class pages (click theme anywhere → description page, camera frames cluster,
    "Other themes" chips for hopping). Theme labels on the web: hover spotlights, click opens page —
@@ -72,8 +83,17 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
 
 ## State as of 2026-07-06
 
-FULLY DEPLOYED AND IN SYNC: app.html == site public/ai-risk-web/index.html == live == artifact.
-Light theme, theme pages, nav history (← BACK), bottom nav rows, matrix restyle, light thumbnail all shipped.
+FULLY DEPLOYED AND IN SYNC: app.html == site public/airiskweb/index.html == live. (Artifact mirror NOT
+re-synced after the 2026-07-06 redesign — republish if you want it current.)
+Light theme, theme pages, nav history, matrix restyle, light thumbnail shipped earlier.
+**2026-07-06 redesign shipped:** docked left sidebar + scrolling wordmark; trimmed padding + narrower column
+(more map space); matrix cleanup (no numbers/label, bigger source titles, theme-color hover/selected, 6px
+corners, no rubber-band); saturated theme tints (26% wash); circled reading-number badges; bolder ◀ back/home;
++15% zoom sensitivity + zoom-out floor; 3 new VS "in tension" edges (13 total); title "an interactive concept
+map for AI risk". **Favicon:** airiskweb-specific `public/airiskweb/favicon.svg` (dashed-red tension pair,
+dark-mode aware) referenced as relative `favicon.svg` in build.sh — do NOT point it at the site-wide `/favicon.svg`.
+NOTE: a second Claude was concurrently building the mobile bottom-sheet (`#panelHandle`, `panelCollapsed`,
+`wirePanelHandle`, `botOccupied`) in the same app.html; that work shares the file and is now live too.
 
 **Accuracy audit (2026-07-06):** 11 parallel agents verified every source-attributed claim against the
 actual sources (~280 assertions). ~60 corrections applied. Notable fixes to KEEP (do not regress):

@@ -1,0 +1,8 @@
+# generated preview artifact (rebuilt by preview.sh)
+local-test.html
+
+# macOS
+.DS_Store
+
+# node
+node_modules/
