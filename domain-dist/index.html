@@ -1516,8 +1516,9 @@ let histDepth=0;
 function pushHistLevel(){ histDepth++; history.pushState({d:histDepth},''); }
 function goHistBack(steps){ if(steps>0) history.go(-Math.min(steps,histDepth)); }
 function unwindOneLevel(){
-  if(navStack.length) navBack();                    // one level up, same as ◀ BACK
-  else if(walk||selectedId||selTheme) goBack();      // reach home (or exit a walk), same as ◀ HOME
+  if(walk){ endWalk(); return; }                     // finishing/exiting a walk always lands on its source page first
+  if(navStack.length) navBack();                     // one level up, same as ◀ BACK
+  else if(selectedId||selTheme) goBack();             // reach home
 }
 addEventListener('popstate',e=>{
   const newD=(e.state&&typeof e.state.d==='number')?e.state.d:0;
