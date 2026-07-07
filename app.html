@@ -1124,6 +1124,7 @@ function showHome(){
         const srcN=SOURCES.filter(s=>s.concepts.some(cid=>byId[cid]&&byId[cid].t===k)).length;
         return `<div class="lg${themeOn[k]?'':' off'}" data-t="${k}" style="${tintStyle(t.color)}">${t.name}<span class="n" style="color:inherit;opacity:.65">${count} concepts · ${srcN} sources</span></div>`;}).join('')}
     </div>
+    <a class="plink" style="display:inline-block;margin-top:16px;font-size:12.5px" href="https://shailenparmar.com/connect" target="_blank" rel="noopener">Get in touch ↗</a>
    </div>`;
   homeShown=true;
 }
