@@ -1192,6 +1192,7 @@ function selectTheme(k,push=true){
   if(push) pushNav();
   selectedId=null; selTheme=k; hoverTheme=null; dirty=true;
   renderTheme(k);
+  armHistoryTrap();
   if(isMobile()&&panelCollapsed){ panelCollapsed=false; panelEl().classList.remove('collapsed'); }
   const cl=clusters[k];
   const avail=Math.min((isMobile()?W:W-PANEL_W-16),H)-170;
@@ -1223,6 +1224,7 @@ function select(id,push=true){
   if(push) pushNav();
   selectedId=id; selTheme=null; dirty=true;
   renderNode(id);
+  armHistoryTrap();
   if(isMobile()&&panelCollapsed){ panelCollapsed=false; panelEl().classList.remove('collapsed'); }
   const n=byId[id];
   if(view==='map'){
@@ -1481,5 +1483,27 @@ buildMatrix();
 document.querySelectorAll('#mtable tbody[data-t]').forEach(tb=>{ if(THEMES[tb.dataset.t]) tb.style.setProperty('--tc',THEMES[tb.dataset.t].color); });
 { const hc=document.querySelector('#mtable thead th.cname'); if(hc) hc.textContent=''; }
 showHome();
+
+/* ---------- trackpad/mouse "back" gesture: step through in-app nav before ever leaving the page ----------
+   Chrome's two-finger-swipe / mouse-back-button triggers browser history back, which would normally
+   navigate away entirely. We push one throwaway history entry whenever the user leaves home; a back
+   gesture pops it (popstate, same document, page never unloads), we take exactly one step back through
+   the app's own nav (mirrors clicking ◀ BACK / ◀ HOME), then re-arm a fresh entry if there's still
+   somewhere to go back to. Once you're truly home, the trap stays empty and the gesture leaves normally. */
+let trapArmed=false;
+function armHistoryTrap(){
+  if(trapArmed) return;
+  history.pushState({airiskTrap:true},'');
+  trapArmed=true;
+}
+function popTrapStep(){
+  if(navStack.length){ navBack(); return true; }             // mirrors ◀ BACK: one level up
+  if(walk||selectedId||selTheme){ goBack(); return true; }    // mirrors ◀ HOME (or exits a walk)
+  return false;                                               // already home: let the gesture leave
+}
+addEventListener('popstate',()=>{
+  trapArmed=false;
+  if(popTrapStep()) armHistoryTrap();
+});
 </script>
 
