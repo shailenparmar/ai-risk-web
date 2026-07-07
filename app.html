@@ -339,7 +339,7 @@ const CONCEPTS = [
   b:'The claim that this century, plausibly these decades, could matter more than any other in human history, because choices made during the transition to transformative AI could shape the entire long-run future. Karnofsky stresses the claim\'s own wildness ("we should be doing a double take at any view that we live in such a special time") and defends taking it seriously anyway, since the trendlines that imply it are the boring, well-documented ones.',
   rel:['tai','lock-in','longtermism','pasta'], src:['s5','s1']},
  {id:'xrisk', t:'F', name:'Existential risk',
-  b:'Risk of the permanent destruction of humanity\'s long-term potential. Extinction is the obvious case, but unrecoverable dystopia or permanent lock-in count too. This list contains two distinct mechanisms: sudden disempowerment by power-seeking AI (Carlsmith) and gradual, systemic drift (Kulveit et al.). Both end with humans lacking any lever to correct course.',
+  b:'Risk of the permanent destruction of humanity\'s long-term potential. Extinction is the obvious case, but unrecoverable dystopia or permanent lock-in count too. This list contains two distinct mechanisms: agentic takeover by power-seeking AI (Carlsmith) and gradual, systemic drift (Kulveit et al.). Both end with humans lacking any lever to correct course.',
   rel:['power-seeking','gradual-disempowerment','lock-in','misalignment'], src:['s8','s5','s9']},
  {id:'longtermism', t:'F', name:'Longtermism',
   b:'The view that positively influencing the long-run future is a key moral priority of our time. It is the normative engine behind 80,000 Hours\' interest in this list. You don\'t need strong longtermism to care about AI risk (a 10% chance of catastrophe this century is alarming on ordinary grounds), but it explains the emphasis on lock-in, trajectory changes, and futures containing vast numbers of minds.',
@@ -389,7 +389,7 @@ const CONCEPTS = [
   b:'Cotra and Narayanan disagree over one question. Is there a rate limiter on how fast AI changes the world? Candidate limits sit at different layers, from physics and power (Epoch\'s territory) to data and, crucially, the social layer: regulation, organizational adoption, trust, complementary infrastructure. Where you place the binding constraint determines whether "capabilities" or "diffusion" is the thing to forecast.',
   rel:['diffusion','multi-decade','power-constraints','data-wall'], src:['s6','s7']},
  {id:'diffusion', t:'T', name:'AI as normal technology',
-  b:'Narayanan argues that even transformative capability diffuses through the economy the way electricity and computers did, over decades, gated by institutions, complements, and human adaptation, not by model quality. If true, timelines to impact stretch and governance gets breathing room. Cotra replies that the most dangerous and illegitimate uses aren\'t gated by slow, conservative adopters. The first explosive consequences can arrive long before diffusion finishes.',
+  b:'Narayanan argues that even transformative capability diffuses through the economy the way the internet did, over decades, gated by institutions, complements, and human adaptation, not by model quality. If true, timelines to impact stretch and governance gets breathing room. Cotra replies that the most dangerous and illegitimate uses aren\'t gated by slow, conservative adopters. The first explosive consequences can arrive long before diffusion finishes.',
   rel:['speed-limit','labor-displacement','multi-decade','poverty'], src:['s6','s11']},
 
  /* ---- S · Scaling & compute ---- */
@@ -403,10 +403,10 @@ const CONCEPTS = [
   b:'Epoch\'s analysis finds electricity is the most binding constraint on scaling. 2030-scale training runs need 1–5+ gigawatts on one campus (a large nuclear plant\'s output) or sophisticated distributed training across sites. This is why AI companies are signing nuclear deals and why Aschenbrenner talks about trillion-dollar clusters. The frontier of AI is becoming an energy-industrial project.',
   rel:['compute-growth','chips','speed-limit'], src:['s7','s3']},
  {id:'chips', t:'S', name:'Chip manufacturing',
-  b:'Advanced GPUs depend on a handful of chokepoints: TSMC\'s leading-edge fabs, high-bandwidth memory, advanced packaging (CoWoS). Epoch finds capacity can expand enough for 2030 scaling but with little slack. The concentration of this supply chain in Taiwan is also what makes export controls a usable governance lever and a geopolitical flashpoint.',
+  b:'Advanced GPUs depend on a handful of chokepoints: TSMC\'s leading-edge fabs, high-bandwidth memory, advanced packaging (CoWoS). Epoch finds capacity can expand enough for 2030 scaling, though with wide error bars around packaging and high-bandwidth memory. The concentration of this supply chain in Taiwan is also what makes export controls a usable governance lever and a geopolitical flashpoint.',
   rel:['compute-growth','power-constraints','us-china','compute-governance'], src:['s7','s3']},
  {id:'data-wall', t:'S', name:'The data wall',
-  b:'Frontier models already train on much of the useful public internet, and naive scaling runs out of human text. Epoch judges this real but likely surmountable. Multimodal data extends the runway on their numbers. Synthetic data, checked against verifiable signals (unit tests, math), is the speculative multiplier they deliberately leave out of the estimate. Whether it works at scale is one of the genuinely open technical questions.',
+  b:'At the current pace of scaling, frontier training runs exhaust the internet's useful human text within a few years. Epoch judges this real but likely surmountable. Multimodal data extends the runway on their numbers. Synthetic data, checked against verifiable signals (unit tests, math), is the speculative multiplier they deliberately leave out of the estimate. Whether it works at scale is one of the genuinely open technical questions.',
   rel:['scaling-laws','algo-progress','inference-scaling','latency-wall'], src:['s7','s3']},
  {id:'algo-progress', t:'S', name:'Algorithmic progress',
   b:'More capability per FLOP comes from better architectures, training recipes, and data curation, which have historically contributed about as much as hardware scaling. That is roughly 3x per year efficiency gains in Epoch\'s separate algorithmic-progress work. It\'s the hardest input to forecast and the one automated AI research would accelerate most directly, which is why "software-only intelligence explosion" debates (Aschenbrenner vs. Erdil) turn on it.',
@@ -415,7 +415,7 @@ const CONCEPTS = [
   b:'After 2024, scaling took a new axis: letting models think longer at inference through chains of reasoning, search, and verification, trading serving cost for capability, trained via reinforcement learning on checkable problems. It revived progress as pretraining gains slowed, powers the agent wave, and complicates governance. Capability now depends on how much compute you spend per query, not just per training run.',
   rel:['unhobbling','agents','data-wall','scaling-laws'], src:['s2']},
  {id:'latency-wall', t:'S', name:'The latency wall',
-  b:'Epoch identifies a subtle constraint. A training run\'s forward and backward passes take physical time, and beyond a scale threshold you can\'t parallelize your way around it, because data must hop between chips at interconnect latencies no amount of money removes. It binds around 10⁵–10⁶x GPT-4 scale, safely past 2030 plans, but a reminder that physics, not economics, sets the outermost envelope.',
+  b:'Epoch identifies a subtle constraint. A training run\'s forward and backward passes take physical time, and beyond a scale threshold you can\'t parallelize your way around it, because data must hop between chips at real interconnect latencies. It binds around 10⁵–10⁶x GPT-4 scale, safely past 2030 plans, but a reminder that physics, not economics, sets the outermost envelope.',
   rel:['compute-growth','data-wall'], src:['s7']},
 
  /* ---- M · Misalignment ---- */
@@ -542,7 +542,7 @@ const CONCEPTS = [
   b:'This is the contested middle ground between the visions. AI strengthens surveillance, propaganda, and autocratic control by default, but could also make courts fairer, help citizens find consensus, and improve government services. Amodei argues democracies must secure the lead and set terms. Kulveit et al. warn democracy erodes structurally once states stop needing citizens. Both treat it as the fragile link.',
   rel:['concentration','epistemics','state-decoupling','coordination'], src:['s11','s9','s1']},
  {id:'meaning-work', t:'P', name:'Meaning after work',
-  b:'If AI does everything better, what are humans for? Amodei\'s answer is that meaning comes from relationships, struggle, and chosen projects, not economic output, though he concedes the economic transition is the genuinely hard part. Kulveit et al. sharpen it. Purposelessness isn\'t just a psychological cost, it\'s the human end-state of disempowerment. The question spans both maps.',
+  b:'If AI does everything better, what are humans for? Amodei\'s answer is that meaning comes from relationships, struggle, and chosen projects, not economic output, though he concedes the economic transition is the genuinely hard part. Kulveit et al. sharpen it: a world where humans are needed for nothing is exactly the end-state of disempowerment. The question spans both maps.',
   rel:['labor-displacement','culture-drift','gradual-disempowerment'], src:['s11','s9']},
 ];
 
@@ -614,7 +614,7 @@ Object.entries(CRUX).forEach(([id,c])=>{ if(byId[id]) byId[id].crux=c; });
    ============================================================ */
 const WALKS={
  s1:[
-  {id:'intel-explosion', note:"The paper starts from a premise. AI that automates research compresses a century of change into a decade, and everything else follows from taking it seriously."},
+  {id:'intel-explosion', note:"The paper starts from a premise. AI that automates research compresses a century of technological progress into a decade, and everything else follows from taking it seriously."},
   {id:'grand-challenges', note:"Even with alignment solved, the compressed century forces a gauntlet of one-shot decisions. This is their catalogue of them."},
   {id:'lock-in', note:"They flag one challenge as distinctive. AI could make commitments and power structures permanent, set up to persist even if everyone came to regret them."},
   {id:'concentration', note:"AI-enabled power grabs are the human-misuse route to lock-in. Whoever controls superintelligence could turn a temporary lead into permanent dominance."},
@@ -665,8 +665,8 @@ const WALKS={
   {id:'compute-growth', note:"The trend under audit is frontier training compute growing roughly 4x/year. The report asks what could stop it by 2030."},
   {id:'scaling-laws', note:"The trend matters because performance follows compute predictably enough to bet billions on."},
   {id:'power-constraints', note:"Constraint #1 is the binding one. 2030-scale runs need gigawatts on a single campus, nuclear-plant territory."},
-  {id:'chips', note:"Constraint #2 is advanced packaging (TSMC's CoWoS) and high-bandwidth memory (SK Hynix & co.), expandable but with little slack."},
-  {id:'data-wall', note:"Constraint #3 is the data wall. The internet's useful text is nearly exhausted, multimodal data is the quantified runway, synthetic data the speculative upside."},
+  {id:'chips', note:"Constraint #2 is advanced packaging (TSMC's CoWoS) and high-bandwidth memory (SK Hynix & co.), expandable, though with wide error bars."},
+  {id:'data-wall', note:"Constraint #3 is the data wall. At trend, training runs exhaust the internet's useful text within a few years; multimodal data is the quantified runway, synthetic data the speculative upside."},
   {id:'latency-wall', note:"Constraint #4 is the physics one. Somewhere past roughly 10⁵x GPT-4, cumulative interconnect latencies bind. That's beyond 2030's plans, but a real ceiling."},
   {id:'algo-progress', note:"The report brackets one wildcard. Epoch's separate work finds efficiency gains have historically rivaled hardware, and automated research would accelerate exactly this."}],
  s8:[
@@ -685,7 +685,7 @@ const WALKS={
   {id:'culture-drift', note:"On the cultural leg, machine-made meaning evolves for what propagates, not what serves human flourishing."},
   {id:'institutional-drift', note:"The generalization treats economy, state, and culture as optimizers that drift once the human anchor is gone, misalignment without an AI villain."},
   {id:'concentration', note:"They note the debate usually stops at power concentrating in whoever controls AI. Their darker addition is that power may pass to the AI systems themselves, beyond even the controllers' reach."},
-  {id:'xrisk', note:"It's existential because the paper calls this outcome an existential catastrophe, an effectively irreversible loss of human influence even with everyone alive. Compare Carlsmith's sudden version (reading 8)."}],
+  {id:'xrisk', note:"It's existential because the paper calls this outcome an existential catastrophe, an effectively irreversible loss of human influence even with everyone alive. Compare Carlsmith's power-seeking version (reading 8)."}],
  s10:[
   {id:'consciousness', note:"The opening claim is that AI consciousness is a realistic near-term possibility, not asserted but not dismissible either."},
   {id:'theories-consciousness', note:"The evidence base is that the leading scientific theories are computational, and none rules out near-term AI satisfying its indicators."},
