@@ -78,6 +78,9 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
    "Other themes" chips for hopping). Theme labels on the web: hover spotlights, click opens page —
    NEVER toggles visibility. No hide/show UI at all (themeOn machinery still exists, reset turns all on).
 9. Esc / double-click background / wordmark click = full reset AND return to WEB view.
+   - Refresh RESTORES the current page (node/theme/walk-position/web-vs-matrix), persisted to
+     localStorage `aira-view` via `saveState()`; `restoreState()` runs last in the script (after
+     `histDepth`/`pushHistLevel` exist — it calls `startWalk`). The three resets above still clear to home.
 10. Minimal chrome: no stats, no instructions except "double-click or esc to reset" (bottom-right).
     Section headers: DESCRIPTION / READINGS / THEMES, plain grey.
 11. Home description is first-person, links "11 resources" inline, includes the no-affiliation note

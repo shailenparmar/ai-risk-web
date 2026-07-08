@@ -511,7 +511,7 @@ const CONCEPTS = [
   b:'A frontier model is a file. Steal the weights and you\'ve stolen the capability: no compute buildup, no research program, no lag. Aschenbrenner, who calls current lab security wildly inadequate against state actors, treats weight theft as the mechanism that erases any safety-relevant lead. In AI 2027, China stealing Agent-2 is what locks both nations into the race.',
   rel:['us-china','ai-control','race-dynamics','the-project'], src:['s3','s2']},
  {id:'the-project', t:'G', name:'"The Project"',
-  b:'Aschenbrenner predicts the US government won\'t let "a random SF startup" develop superintelligence. By the endgame, expect a Manhattan Project-like government AGI project: labs merged under national leadership, security clearances, defense-contractor-style orchestration (he stresses it needn\'t be literal nationalization). Whether that\'s the responsible adult arriving or the most dangerous concentration of power in history depends on what you think of states, and which one gets there first.',
+  b:'Aschenbrenner predicts the US government won\'t let "a random SF startup" develop superintelligence. By the endgame, expect a Manhattan Project-like government AGI project: labs merged under national leadership, security clearances, defense-contractor-style orchestration (he stresses it needn\'t be literal nationalization). Whether such a project is a stabilizing development or a dangerous concentration of power is contested, turning on how much one trusts state control and on which country reaches superintelligence first.',
   rel:['us-china','concentration','race-dynamics','lock-in'], src:['s3']},
  {id:'compute-governance', t:'G', name:'Compute governance',
   b:'Compute is the most enforceable lever available. Frontier AI requires physically enormous, supply-chain-concentrated, energy-hungry compute that\'s hard to hide. Export controls, chip tracking, and datacenter monitoring make compute the anchor for verification in a way code and talent can never be. Epoch\'s scaling work is what tells you where, and until when, this lever has grip.',
@@ -1121,7 +1121,7 @@ function shortAuthors(s){
 // remember where the home panel was scrolled; restore it on ← back, clear it on esc / refresh
 let savedHomeScroll=0, homeShown=false;
 function showHome(){
-  selectedId=null; dirty=true; syncMatrixSel();
+  selectedId=null; selTheme=null; dirty=true; syncMatrixSel(); saveState();
   panel.innerHTML=`
    <div class="intro">
     <div class="sect" style="border-top:0;margin-top:0;padding-top:2px">DESCRIPTION</div>
@@ -1218,6 +1218,7 @@ function selectTheme(k,push=true){
   const cl=clusters[k];
   const avail=Math.min((isMobile()?W:W-PANEL_W-16),H)-170;
   if(view==='map') goTo({x:cl.x,y:cl.y,z:Math.max(0.45,Math.min(1.1,avail/(2*(cl.r+90))))});
+  saveState();
 }
 function renderTheme(k){
   if(homeShown){ savedHomeScroll=panel.scrollTop; homeShown=false; } // remember home scroll before leaving it
@@ -1242,6 +1243,7 @@ function renderTheme(k){
 }
 function select(id,push=true){
   if(push&&!walk&&id===selectedId) return; // re-clicking the concept you're already on isn't a new nav
+  if(push&&walk) walk=null; // a genuine map/panel click ends the walk (showWalkStop uses push=false)
   if(push){ pushNav(); pushHistLevel(); }
   selectedId=id; selTheme=null; dirty=true;
   renderNode(id);
@@ -1251,6 +1253,7 @@ function select(id,push=true){
     const z=Math.max(cam.z,0.85);
     goTo({x:n.x,y:n.y,z});
   } else syncMatrixSel(true);
+  saveState();
 }
 function deselect(){ selectedId=null; selTheme=null; navStack.length=0; dirty=true; showHome(); panel.scrollTop=savedHomeScroll; if(view==='map') goTo(fit()); }
 function goBack(){
@@ -1265,7 +1268,7 @@ function goBack(){
 /* full reset: everything visible, nothing selected, camera fit */
 function resetView(){
   Object.keys(THEMES).forEach(k=>themeOn[k]=true);
-  hoverId=null; selectedId=null; selTheme=null; hoverTheme=null;
+  walk=null; hoverId=null; selectedId=null; selTheme=null; hoverTheme=null;
   navStack.length=0;
   applyMatrixFilter(); syncMatrixSel();
   savedHomeScroll=0; showHome(); panel.scrollTop=0; // esc = full reset: clear saved home scroll, back to top
@@ -1389,6 +1392,34 @@ function endWalk(){
   if(sid){ select(sid,false); } else deselect();
 }
 
+/* ---- persist the current page across a refresh; Esc / double-click / wordmark still reset to home ---- */
+let stateReady=false;
+function saveState(){
+  if(!stateReady) return;
+  try{
+    let s;
+    if(walk) s={v:view,k:'walk',id:walk.src.id,i:walkIdx};
+    else if(selectedId) s={v:view,k:'node',id:selectedId};
+    else if(selTheme) s={v:view,k:'theme',id:selTheme};
+    else s={v:view,k:'home'};
+    localStorage.setItem('aira-view',JSON.stringify(s));
+  }catch(e){}
+}
+function restoreState(){
+  let s=null; try{ s=JSON.parse(localStorage.getItem('aira-view')||'null'); }catch(e){}
+  if(!s) return;
+  try{
+    if(s.k==='walk' && WALKS[s.id]){
+      startWalk(s.id);
+      walkIdx=Math.max(0,Math.min(s.i||0,walk.stops.length-1)); showWalkStop();
+      return;
+    }
+    if(s.v==='matrix') setView('matrix');
+    if(s.k==='node' && byId[s.id]) select(s.id,false);
+    else if(s.k==='theme' && THEMES[s.id]) selectTheme(s.id,false);
+  }catch(e){}
+}
+
 /* ---------- search ---------- */
 const search=document.getElementById('search'), results=document.getElementById('searchResults');
 let srIndex=-1;
@@ -1490,6 +1521,7 @@ function setView(v){
   stage.style.display=v==='map'?'':'none';
   document.getElementById('resetHint').style.display=v==='map'?'':'none';
   if(v==='map') dirty=true; else syncMatrixSel(true);
+  saveState();
 }
 tabMap.addEventListener('click',()=>setView('map'));
 tabMatrix.addEventListener('click',()=>setView('matrix'));
@@ -1526,6 +1558,9 @@ addEventListener('popstate',e=>{
   histDepth=newD;
   for(let i=0;i<steps;i++) unwindOneLevel();
 });
+
+/* refresh returns you to the page you were on (runs last: after histDepth/pushHistLevel exist) */
+restoreState(); stateReady=true;
 </script>
 
 
