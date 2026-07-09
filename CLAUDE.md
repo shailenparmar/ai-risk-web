@@ -101,6 +101,10 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
     chips, eyebrow theme tag, home theme ovals, matrix theme pills, backBtn, walkBtn, tn-nav, linkout.
     Rows (.rd/.sr/matrix) keep their background-wash hover; text links keep accent underline/color.
     If an element's padding changes, update its :hover padding pair too.
+    Border-strength hierarchy: `--line` (#E2E5EB) is for DIVIDERS/surfaces only; interactive controls
+    (backBtn, tn-nav, linkout) use `--ctrl` (ink 45%) so they read as pressable — content pills stay
+    strongest (theme 85% / ink 60%). Rest weight is always 1px (2px is the hover cue). WEB|MATRIX tabs,
+    search input, and the `.k` key-hint stay on --line (chrome/non-interactive, not action buttons).
 
 ## Workflow
 

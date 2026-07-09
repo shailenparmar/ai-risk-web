@@ -2,7 +2,7 @@
 <style>
   :root{
     --bg:#FFFFFF; --bg2:#F7F8FA; --panel:#FFFFFF; --panel2:#F1F3F7;
-    --line:#E2E5EB; --text:#16181D; --muted:#5A6472; --faint:#9AA2AE;
+    --line:#E2E5EB; --ctrl:rgba(35,40,51,.45); --text:#16181D; --muted:#5A6472; --faint:#9AA2AE;
     --accent:#3B63C4;
     --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
     --f-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
@@ -50,7 +50,7 @@
     backdrop-filter:blur(12px);display:flex;flex-direction:column;box-shadow:0 16px 40px rgba(30,40,60,.10)}
   #panelScroll{overflow-y:auto;padding:18px 18px 22px;flex:1}
   #panelHandle{display:none} /* mobile-only drag grabber; hidden on desktop */
-  .backBtn{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--accent);
+  .backBtn{display:inline-block;background:none;border:1px solid var(--ctrl);border-radius:6px;color:var(--accent);
     font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;cursor:pointer;padding:7px 12px}
   .backBtn:hover{border-width:2px;padding:6px 11px}
   .backRow{display:flex;gap:8px;margin-bottom:14px}
@@ -75,7 +75,7 @@
   .chip.src{border-radius:6px}
   .chip.src .cnum{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;flex:0 0 16px;border-radius:50%;border:1.5px solid #232833;background:#fff;color:#232833;font-family:var(--f-mono);font-size:9.5px;font-weight:700;line-height:1;box-sizing:border-box}
   .linkout{display:inline-block;margin-top:14px;font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;
-    color:var(--accent);text-decoration:none;border:1px solid var(--line);border-radius:6px;padding:8px 12px}
+    color:var(--accent);text-decoration:none;border:1px solid var(--ctrl);border-radius:6px;padding:8px 12px}
   .linkout:hover{border-width:2px;padding:7px 11px}
   .plink{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(59,99,196,.35)}
   .plink:hover{border-bottom-color:var(--accent)}
@@ -136,7 +136,7 @@
   .tn-nav{display:flex;gap:8px;margin-top:11px;align-items:center;justify-content:space-between}
   .tn-count{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;color:var(--accent)}
   .tn-nav .tn-ghost{visibility:hidden}
-  .tn-nav button{background:var(--panel2);border:1px solid var(--line);border-radius:6px;color:var(--text);
+  .tn-nav button{background:var(--panel2);border:1px solid var(--ctrl);border-radius:6px;color:var(--text);
     font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;padding:6px 11px;cursor:pointer}
   .tn-nav button:hover{border-width:2px;padding:5px 10px}
 
