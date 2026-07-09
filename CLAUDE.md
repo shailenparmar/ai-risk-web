@@ -113,8 +113,10 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
     ink = content); hover/focus says you're on it via INTENSITY ONLY, never a hue change. Search:
     hover thickens, focus = thickened + --ctrl border (mobile media has its own padding pair).
     titleLink hovers to an underline (+ ↗ glyph darkens); footer links intensify muted→ink. The only
-    accent-on-hover rules left are .plink (blue link intensifying its own blue underline — allowed:
-    intensity of self) and .brand (display:none on desktop, overridden on mobile — dead rule).
+    accent-on-hover rule left is .plink (blue link intensifying its own blue underline — allowed:
+    intensity of self). The wordmark (mobile .brand AND the desktop #panelScroll::before, which is
+    click-to-reset via a hit-test on #panelScroll) stays ink with NO hover/active hue — user ruling
+    2026-07-09: the reset itself is the feedback.
 
 14. Copy register — SITE-WIDE (2026-07-08): editorializing has NO place on this site. Every piece of
     copy (walk notes, briefings, theme descriptions, crux boxes, summaries) is an objective summary
