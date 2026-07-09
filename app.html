@@ -212,14 +212,20 @@
     /* bottom sheet: slides down to reveal the full map, pulls back up for the reading */
     #panel{top:auto;left:0;right:0;bottom:0;width:auto;max-height:62vh;border-radius:16px 16px 0 0;border-bottom:0;
       transition:transform .28s cubic-bezier(.32,.72,0,1);will-change:transform}
-    #panel.collapsed{transform:translateY(calc(100% - 40px))}
-    #panelHandle{display:flex;align-items:center;justify-content:center;
-      height:38px;flex:0 0 auto;cursor:pointer;touch-action:none;user-select:none;position:relative}
+    #panel.collapsed{transform:translateY(100%)} /* body fully off-screen; only the notch tab shows */
+    /* notch tab: a small grabber protruding ABOVE the sheet's top edge instead of a full-width 38px
+       bar — the content reclaims that space, and when collapsed only the tab peeks up. Visual is
+       caret-sized; the ::after pad keeps the touch target comfortably larger. */
+    #panelHandle{position:absolute;top:-24px;left:50%;margin-left:-21px;width:42px;height:24px;
+      background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border:1px solid var(--line);
+      border-bottom:0;border-radius:10px 10px 0 0;display:flex;align-items:center;justify-content:center;
+      cursor:pointer;touch-action:none;user-select:none}
+    #panelHandle::after{content:"";position:absolute;inset:-10px -18px}
     /* chevron: points DOWN when the sheet is up (tap to hide), flips UP when hidden (tap to show) */
     #panelHandle .caret{width:11px;height:11px;border-right:2.5px solid #AAB2BF;border-bottom:2.5px solid #AAB2BF;
       transform:translateY(-2px) rotate(45deg);transition:transform .22s}
     #panel.collapsed #panelHandle .caret{transform:translateY(2px) rotate(225deg)}
-    #panelScroll{padding-top:4px}
+    #panelScroll{padding-top:8px}
     #resetHint{display:none !important}
     #matrixWrap{top:96px;left:8px;right:8px;bottom:8px}
   }
@@ -810,7 +816,7 @@ let view='map';
 const themeOn={}; Object.keys(THEMES).forEach(k=>themeOn[k]=true);
 const isMobile=()=>innerWidth<=860;
 const PANEL_W=388; // panel width + margins (docked sidebar)
-const PANEL_PEEK=40; // px of the bottom sheet left showing when collapsed (the drag handle)
+const PANEL_PEEK=24; // px visible when collapsed = the protruding notch tab (sheet body is fully off-screen)
 let panelCollapsed=false; // mobile bottom-sheet state
 const panelEl=()=>document.getElementById('panel');
 // how many px the bottom sheet covers at the bottom of the screen (0 on desktop)
@@ -1296,7 +1302,7 @@ function setPanelCollapsed(v){
 (function wirePanelHandle(){
   const h=document.getElementById('panelHandle'); if(!h) return;
   let drag=null;
-  const collapsedT=()=>panelEl().offsetHeight-PANEL_PEEK;
+  const collapsedT=()=>panelEl().offsetHeight; // collapsed = body fully off-screen (notch tab protrudes above and stays visible)
   h.addEventListener('pointerdown',e=>{
     if(!isMobile()) return;
     drag={y:e.clientY,moved:0}; h.setPointerCapture(e.pointerId);

@@ -162,6 +162,12 @@ Another Claude session is editing content in this same repo/working tree (e.g. f
    https://claude.ai/code/artifact/043ebb40-e1ce-450c-8ff1-0aa9678a28c7 via the Artifact tool with `url` param.
 4. Verification gotcha: Chrome extension screenshots fail on artifacts/minimized windows — test against
    localhost with javascript_tool DOM assertions instead. Beware stale tabs: always cache-bust (`?v=n`).
+   BIGGER gotcha (2026-07-09): when the Chrome window is minimized/backgrounded, style recalc is
+   throttled — javascript_tool DOM mutations then report STALE computed styles/rects (a class add
+   showed transform:identity; even rAF hangs and times out CDP). If mutation-based assertions look
+   impossible, don't debug the CSS — verify headlessly instead: puppeteer-core borrowed from
+   good-days-mobile-design (see capture-card.mjs / the scratchpad test-notch.mjs pattern,
+   setViewport 390x700 isMobile for the bottom sheet).
 
 ## State as of 2026-07-06
 
