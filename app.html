@@ -373,7 +373,7 @@ const CONCEPTS = [
 
  /* ---- T · Timelines & takeoff ---- */
  {id:'intel-explosion', t:'T', name:'Intelligence explosion',
-  b:'The scenario where AI systems substantially automate AI research itself, so each generation builds a better successor, and progress accelerates beyond human tempo. It is I.J. Good\'s 1965 idea, now argued from concrete trendlines. MacAskill and Moorhouse treat it as compressing a century into a decade. Aschenbrenner sketches the year-by-year version. Erdil doubts the software-only variant works without matching compute growth.',
+  b:'The scenario where AI systems substantially automate AI research itself, so each generation builds a better successor, and the rate of progress compounds with each cycle. It is I.J. Good\'s 1965 idea, now argued from concrete trendlines. MacAskill and Moorhouse treat it as compressing a century into a decade. Aschenbrenner sketches the year-by-year version. Erdil doubts the software-only variant works without matching compute growth.',
   rel:['auto-ai-rnd','takeoff','pasta','ooms','multi-decade'], src:['s1','s3','s2','s5','s4']},
  {id:'auto-ai-rnd', t:'T', name:'Automated AI R&D',
   b:'The feedback loop everything hinges on. AI agents do machine-learning research, running experiments, writing code, proposing architectures. AI 2027\'s entire scenario runs through it, from "superhuman coder" to "superhuman AI researcher," and labs explicitly target it. Erdil is skeptical. Research needs compute and real-world experiment, not just more thinking, so cognitive automation alone doesn\'t explode.',
@@ -1373,8 +1373,12 @@ function injectNote(){
     <button data-tnav="1">${walkIdx<walk.stops.length-1?'NEXT →':'FINISH ✓'}</button></div>`;
   panel.prepend(div);
   panel.prepend(head);
-  // top row: HOME and EXIT WALK side by side
-  const bb=panel.querySelector('.backBtn'); if(bb) bb.remove();
+  // the concept page's own nav rows are redundant inside a walk (their BACK = EXIT WALK):
+  // drop the top one whole (the walk's HOME / EXIT WALK row replaces it) and make the bottom
+  // one mirror the walk pair, so a long briefing still ends with usable nav
+  const oldRow=panel.querySelector('.backRow'); if(oldRow) oldRow.remove();
+  const botRow=panel.querySelector('.backRow');
+  if(botRow) botRow.innerHTML=`<button class="backBtn" data-back-home>◀ HOME</button><button class="backBtn" data-back>✕ EXIT WALK</button>`;
   const row=document.createElement('div'); row.className='backRow';
   row.innerHTML=`<button class="backBtn" data-back-home>◀ HOME</button>
     <button class="backBtn" data-back>✕ EXIT WALK</button>`;
