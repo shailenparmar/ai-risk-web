@@ -1320,7 +1320,7 @@ function backLabel(){ return walk ? '◀ EXIT WALK' : '◀ HOME'; }
 
 /* panel delegation: back, walk, read, walk-nav, theme filter, node chips */
 panel.addEventListener('click',e=>{
-  if(e.target.closest('[data-back-home]')){ goHistBack(histDepth); return; }
+  if(e.target.closest('[data-back-home]')){ goHistBack(1e9); return; } // "everything" — goHistBack clamps to uiDepth
   if(e.target.closest('[data-back-prev]')){ goHistBack(1); return; }
   if(e.target.closest('[data-back]')){ goHistBack(1); return; }
   const wb=e.target.closest('[data-walk]'); if(wb){ startWalk(wb.dataset.walk); return; }
@@ -1403,6 +1403,7 @@ function saveState(){
     else if(selectedId) s={v:view,k:'node',id:selectedId};
     else if(selTheme) s={v:view,k:'theme',id:selTheme};
     else s={v:view,k:'home'};
+    if(s.k!=='home') s.nav=navStack.slice(-20); // keep the BACK chain across refresh too
     localStorage.setItem('aira-view',JSON.stringify(s));
   }catch(e){}
 }
@@ -1410,6 +1411,8 @@ function restoreState(){
   let s=null; try{ s=JSON.parse(localStorage.getItem('aira-view')||'null'); }catch(e){}
   if(!s) return;
   try{
+    // restore the BACK chain first — the page renders its nav row from navStack
+    if(Array.isArray(s.nav)) navStack.push(...s.nav.filter(e=>e&&((e.n&&byId[e.n])||(e.t&&THEMES[e.t]))));
     if(s.k==='walk' && WALKS[s.id]){
       startWalk(s.id);
       walkIdx=Math.max(0,Math.min(s.i||0,walk.stops.length-1)); showWalkStop();
@@ -1547,7 +1550,18 @@ showHome();
    the identical history.go() path, so clicks and gestures can never fall out of sync with each other. */
 let histDepth=0;
 function pushHistLevel(){ histDepth++; history.pushState({d:histDepth},''); }
-function goHistBack(steps){ if(steps>0) history.go(-Math.min(steps,histDepth)); }
+/* how many levels deep the UI actually is (walk + back-chain + current page) */
+function uiDepth(){ return (walk?1:0)+navStack.length+((selectedId||selTheme)?1:0); }
+/* After a refresh histDepth resets to 0 while the restored UI can be several levels deep, so the
+   two can disagree. Unwind through history for the levels history knows about, and directly for
+   the rest (extraUnwind). NEVER call history.go(0) — browsers treat it as a reload. */
+let extraUnwind=0;
+function goHistBack(steps){
+  steps=Math.min(steps,uiDepth()); if(steps<=0) return;
+  const h=Math.min(steps,histDepth);
+  if(h>0){ extraUnwind=steps-h; history.go(-h); }
+  else for(let i=0;i<steps;i++) unwindOneLevel();
+}
 function unwindOneLevel(){
   if(walk){ endWalk(); return; }                     // finishing/exiting a walk always lands on its source page first
   if(navStack.length) navBack();                     // one level up, same as ◀ BACK
@@ -1555,12 +1569,15 @@ function unwindOneLevel(){
 }
 addEventListener('popstate',e=>{
   const newD=(e.state&&typeof e.state.d==='number')?e.state.d:0;
-  const steps=Math.max(0,histDepth-newD);
+  const steps=Math.max(0,histDepth-newD)+extraUnwind; extraUnwind=0;
   histDepth=newD;
   for(let i=0;i<steps;i++) unwindOneLevel();
 });
 
-/* refresh returns you to the page you were on (runs last: after histDepth/pushHistLevel exist) */
+/* refresh returns you to the page you were on (runs last: after histDepth/pushHistLevel exist).
+   replaceState first: the current entry may carry a stale pre-refresh depth stamp that would
+   otherwise make the popstate math skip unwinds. */
+try{ history.replaceState({d:0},''); }catch(e){}
 restoreState(); stateReady=true;
 </script>
 

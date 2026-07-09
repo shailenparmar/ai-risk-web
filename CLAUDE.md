@@ -78,9 +78,16 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
    "Other themes" chips for hopping). Theme labels on the web: hover spotlights, click opens page —
    NEVER toggles visibility. No hide/show UI at all (themeOn machinery still exists, reset turns all on).
 9. Esc / double-click background / wordmark click = full reset AND return to WEB view.
-   - Refresh RESTORES the current page (node/theme/walk-position/web-vs-matrix), persisted to
-     localStorage `aira-view` via `saveState()`; `restoreState()` runs last in the script (after
-     `histDepth`/`pushHistLevel` exist — it calls `startWalk`). The three resets above still clear to home.
+   - Refresh RESTORES the current page (node/theme/walk-position/web-vs-matrix) AND the ◀ BACK chain
+     (`nav` field), persisted to localStorage `aira-view` via `saveState()`; `restoreState()` runs last
+     in the script (after `histDepth`/`pushHistLevel` exist — it calls `startWalk`). The three resets
+     above still clear to home.
+   - HOME/BACK route through `goHistBack()`, which clamps to `uiDepth()` and mixes history unwinds
+     with direct `unwindOneLevel()` calls (`extraUnwind`) because after a refresh `histDepth` resets
+     to 0 while the restored UI is deep. NEVER let it reach `history.go(0)` — browsers reload on that
+     (this was the "HOME click does nothing" bug, 2026-07-08). Load also does
+     `history.replaceState({d:0})` to clear stale pre-refresh depth stamps; keep it try/catch-wrapped
+     (check.mjs evals the script in Node, where `history` doesn't exist).
 10. Minimal chrome: no stats, no instructions except "double-click or esc to reset" (bottom-right).
     Section headers: DESCRIPTION / READINGS / THEMES, plain grey.
 11. Home description is first-person, links "11 resources" inline, includes the no-affiliation note
