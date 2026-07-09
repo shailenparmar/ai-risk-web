@@ -94,10 +94,13 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
     (user's exact copy — don't rewrite).
 12. Walk notes must NEVER claim a red dashed edge that isn't in VS. Content claims trace to sources
     (e.g. AI 2027 note cites their actual bounty program).
-13. ONE hover cue site-wide (2026-07-08): border turns `var(--accent)` blue (with `!important` where
-    tint borders are inline). NEVER `filter:brightness()` on hover — it shades inner elements (e.g. the
-    white circled-number badge). Applies to chips, eyebrow theme tag, home theme ovals, matrix theme
-    pills; rows (.rd/.sr/matrix) keep their background-wash hover, links keep accent underline/color.
+13. ONE hover cue site-wide (2026-07-08, revised same day): the element's OWN border thickens 1px→2px
+    with padding reduced 1px to compensate (zero layout shift — verified per element). Color-neutral by
+    ruling: NO blue/accent border on hover ("blue isn't neutral, it clashes"), and NEVER
+    `filter:brightness()` — it shades inner elements (e.g. the white circled-number badge). Applies to
+    chips, eyebrow theme tag, home theme ovals, matrix theme pills, backBtn, walkBtn, tn-nav, linkout.
+    Rows (.rd/.sr/matrix) keep their background-wash hover; text links keep accent underline/color.
+    If an element's padding changes, update its :hover padding pair too.
 
 ## Workflow
 
