@@ -226,7 +226,7 @@
     .brand{display:none}
     #panelScroll{padding:16px 12px 20px}
     /* wordmark = first scrolling line of the column body */
-    #panelScroll::before{content:"AI RISK WEB";display:block;height:22px;line-height:22px;padding-left:29px;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><line x1='8' y1='21' x2='24' y2='11' stroke='%23C7364C' stroke-width='2.6' stroke-dasharray='3 2.4' stroke-linecap='round'/><circle cx='8' cy='21' r='4' fill='%23232833'/><circle cx='24' cy='11' r='4' fill='%23232833'/></svg>") no-repeat left center;background-size:21px 21px;font-family:var(--f-mono);font-size:18px;font-weight:700;letter-spacing:.2em;color:var(--text);margin:0 0 16px 1px}
+    #panelScroll::before{content:"AI RISK WEB";display:block;height:22px;line-height:22px;padding-left:29px;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><line x1='8' y1='21' x2='24' y2='11' stroke='%23C7364C' stroke-width='2.6' stroke-dasharray='3 2.4' stroke-linecap='round'/><circle cx='8' cy='21' r='4' fill='%23232833'/><circle cx='24' cy='11' r='4' fill='%23232833'/></svg>") no-repeat left center;background-size:21px 21px;font-family:var(--f-mono);font-size:18px;font-weight:700;letter-spacing:.2em;color:var(--text);margin:0 0 16px 1px;cursor:pointer}
     #matrixWrap{left:392px}
   }
   #matrixWrap{border-radius:6px;overscroll-behavior:none}
@@ -1536,6 +1536,15 @@ tabMap.addEventListener('click',()=>setView('map'));
 tabMatrix.addEventListener('click',()=>setView('matrix'));
 document.getElementById('brandHome').addEventListener('click',()=>{
   if(walk) endWalk(); setView('map'); resetView();
+});
+/* desktop wordmark (#panelScroll::before) = same full reset as the mobile brand tap. A pseudo-element
+   can't take a listener, so hit-test its strip: clicks landing on the container itself whose content-y
+   falls inside the wordmark line (16px top padding + 22px line). Keep in sync with the ::before CSS. */
+panel.addEventListener('click',e=>{
+  if(e.target!==panel) return;
+  if(!window.matchMedia('(min-width:861px)').matches) return;
+  const y=e.clientY-panel.getBoundingClientRect().top+panel.scrollTop;
+  if(y>=16&&y<=38){ if(walk) endWalk(); setView('map'); resetView(); }
 });
 
 showHome();
