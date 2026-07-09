@@ -116,6 +116,22 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
     accent-on-hover rules left are .plink (blue link intensifying its own blue underline — allowed:
     intensity of self) and .brand (display:none on desktop, overridden on mobile — dead rule).
 
+14. Copy register — SITE-WIDE (2026-07-08): editorializing has NO place on this site. Every piece of
+    copy (walk notes, briefings, theme descriptions, crux boxes, summaries) is an objective summary
+    whose job is sharing useful condensed information — plain declarative sentences, no conversational
+    idioms, no editorial winks, no nonchalance, no voice-y flourishes. Example rejection: "everything
+    else follows from taking it seriously" → "The rest of the paper works out the consequences."
+    This extends the earlier de-editorializing passes (ddc26eb voice restyle, 513c3b6, 6ca717b) —
+    treat those as precedent, not one-offs. When writing NEW copy, default to the register of an
+    encyclopedia entry, not a newsletter.
+    Full-content register audit ran 2026-07-09 (4 parallel reviewers, 15 fixes applied). User rulings
+    from it: first-person plural "we/us" is ALLOWED (mirrors the literature's framing, not reader
+    address); vivid-but-factual compressions stay ("Genius as a utility.", "nuclear-plant territory",
+    "random SF startup", theme P's "worth fighting for"). Banned residue patterns: evaluative
+    adverbs/superlatives in site voice (strikingly/landmark/rigorous/"strongest available"), casual
+    idioms (punt, tap out, "& co.", "back in 2020"), insinuating adverbs ("quietly assume"),
+    generic-you ("a utility you can point at problems"), newsletter framing ("The takeaway is...").
+
 ## Workflow
 
 1. Edit `app.html` → `node check.mjs` → `./preview.sh` → user reviews at localhost:8931.
