@@ -101,6 +101,10 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
     chips, eyebrow theme tag, home theme ovals, matrix theme pills, backBtn, walkBtn, tn-nav, linkout.
     Rows (.rd/.sr/matrix) keep their background-wash hover; text links keep accent underline/color.
     If an element's padding changes, update its :hover padding pair too.
+    GOTCHA (2026-07-08 flicker regression): the home theme ovals' contiguous hit zones (`.lg::before`
+    fills the 4px legend gap) anchor to the padding box, which the hover cue shrinks — the hit zone
+    must stay IDENTICAL in rest+hover states or hover oscillates mid-gap. `.lg::before` (-3px) and
+    `.lg:hover::before` (-4px) compensate; keep them in sync with any `.lg` border/padding change.
     Border-strength hierarchy: `--line` (#E2E5EB) is for DIVIDERS/surfaces only; interactive controls
     (backBtn, tn-nav, linkout) use `--ctrl` (ink 45%) so they read as pressable — content pills stay
     strongest (theme 85% / ink 60%). Rest weight is always 1px (2px is the hover cue). WEB|MATRIX tabs,

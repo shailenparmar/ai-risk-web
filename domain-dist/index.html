@@ -121,8 +121,13 @@
     border-radius:99px;padding:5px 12px;cursor:pointer;font-family:var(--f-mono);font-size:11.5px;
     letter-spacing:.05em;user-select:none}
   /* invisible hit-area extension that fills the 4px gap between ovals so the hover/click zones
-     tile edge-to-edge — no dead space to flash the spotlight off. ovals stay visually separated. */
+     tile edge-to-edge — no dead space to flash the spotlight off. ovals stay visually separated.
+     The hit zone must be IDENTICAL in rest and hover states or hover oscillates (flicker between
+     neighbors mid-gap). Offsets anchor to the padding box, which shrinks 1px when :hover thickens
+     the border — so the :hover pair below compensates. Reach past the border box is exactly 2px
+     in both states: two neighbors tile the 4px legend gap edge-to-edge. Keep all three in sync. */
   .lg::before{content:"";position:absolute;left:0;right:0;top:-3px;bottom:-3px}
+  .lg:hover::before{top:-4px;bottom:-4px}
   .lg:hover{border-width:2px;padding:4px 11px}
   .lg.off{opacity:.3;filter:saturate(.4)}
   .lg .n{margin-left:auto;padding-left:10px;font-size:9.5px;white-space:nowrap}
