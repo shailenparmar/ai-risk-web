@@ -94,6 +94,10 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
     (user's exact copy — don't rewrite).
 12. Walk notes must NEVER claim a red dashed edge that isn't in VS. Content claims trace to sources
     (e.g. AI 2027 note cites their actual bounty program).
+13. ONE hover cue site-wide (2026-07-08): border turns `var(--accent)` blue (with `!important` where
+    tint borders are inline). NEVER `filter:brightness()` on hover — it shades inner elements (e.g. the
+    white circled-number badge). Applies to chips, eyebrow theme tag, home theme ovals, matrix theme
+    pills; rows (.rd/.sr/matrix) keep their background-wash hover, links keep accent underline/color.
 
 ## Workflow
 
