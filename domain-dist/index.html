@@ -32,7 +32,8 @@
   header>*{pointer-events:auto}
   .brand{line-height:1.15;cursor:pointer;user-select:none}
   .brand h1{font-family:var(--f-mono);font-size:18px;font-weight:700;letter-spacing:.2em;padding-left:28px;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><line x1='8' y1='21' x2='24' y2='11' stroke='%23C7364C' stroke-width='2.6' stroke-dasharray='3 2.4' stroke-linecap='round'/><circle cx='8' cy='21' r='4' fill='%23232833'/><circle cx='24' cy='11' r='4' fill='%23232833'/></svg>") no-repeat left center;background-size:20px 20px}
-  .brand:hover h1{color:var(--accent)}
+  /* no hover/active hue on the wordmark — the reset itself is the feedback; stays ink on both
+     mobile and desktop (ruling 13: intensity-only cues) */
   #viewTabs{display:flex;gap:2px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:2px}
   #viewTabs button{background:none;border:0;border-radius:5px;color:var(--muted);font-family:var(--f-mono);
     font-size:11px;letter-spacing:.08em;padding:6px 14px;cursor:pointer}
@@ -211,8 +212,6 @@
   @media (max-width:860px){
     header{flex-wrap:nowrap;gap:6px;padding:10px 12px}
     .brand h1{font-size:15px;letter-spacing:.1em} /* trim wordmark so the row fits one line on phones */
-    .brand:hover h1{color:var(--text)}  /* kill sticky :hover blue that lingers after a tap on touch */
-    .brand:active h1{color:var(--accent)} /* blue only while the finger is actually down */
     #viewTabs button{padding:6px 11px}
     #search{width:74px;padding:7px 9px} /* shrunk 12% (84->74) so AI RISK WEB always fits on one line */
     #search:hover,#search:focus{padding:6px 8px} /* hover/focus padding pair for the mobile base padding */
