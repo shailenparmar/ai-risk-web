@@ -6,3 +6,5 @@ local-test.html
 
 # node
 node_modules/
+# scratch comparison pages for design decisions
+local-compare.html
