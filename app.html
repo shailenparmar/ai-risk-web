@@ -202,8 +202,12 @@
     header{flex-wrap:nowrap;gap:6px;padding:10px 12px}
     .brand h1{font-size:15px;letter-spacing:.1em} /* trim wordmark so the row fits one line on phones */
     #viewTabs button{padding:6px 11px}
-    #search{width:74px;padding:7px 9px} /* shrunk 12% (84->74) so AI RISK WEB always fits on one line */
-    #search:hover,#search:focus{padding:6px 8px} /* hover/focus padding pair for the mobile base padding */
+    /* font-size ≥16px stops iOS force-zooming the page when the input focuses (page zoom then fights
+       the map's own pan/zoom). Placeholder stays 12px for visual weight; padding trimmed so the box
+       height matches the old 12px version. */
+    #search{width:74px;padding:4px 9px;font-size:16px} /* shrunk 12% (84->74) so AI RISK WEB always fits on one line */
+    #search::placeholder{font-size:12px}
+    #search:hover,#search:focus{padding:3px 8px} /* hover/focus padding pair for the mobile base padding */
     #searchResults{width:min(290px,calc(100vw - 24px))}
     /* bottom sheet: slides down to reveal the full map, pulls back up for the reading */
     #panel{top:auto;left:0;right:0;bottom:0;width:auto;max-height:62vh;border-radius:16px 16px 0 0;border-bottom:0;
