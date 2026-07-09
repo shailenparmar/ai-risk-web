@@ -135,9 +135,13 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
 ## Workflow
 
 1. Edit `app.html` → `node check.mjs` → `./preview.sh` → user reviews at localhost:8931.
-2. On his "push": `./deploy-domain.sh` (that's it — airiskweb.com is the only copy), then `git add -A &&
+2. Deploy = `./deploy-domain.sh` (that's it — airiskweb.com is the only copy), then `git add -A &&
    git commit && git push` in THIS repo. The shailenparmar.com repo is only touched if you change the
    redirects/portfolio, not for app edits.
+   **AUTOPUSH (his standing instruction, 2026-07-09): for SMALL changes — copy tweaks, small UI/UX
+   fixes, one-liners — deploy+commit+push immediately after check.mjs passes, without waiting for
+   his "push", unless he says otherwise in the moment. Bigger work (new features, redesigns, data
+   restructuring) still goes through preview review first.**
 3. Artifact mirror (dev history): republish to
    https://claude.ai/code/artifact/043ebb40-e1ce-450c-8ff1-0aa9678a28c7 via the Artifact tool with `url` param.
 4. Verification gotcha: Chrome extension screenshots fail on artifacts/minimized windows — test against
