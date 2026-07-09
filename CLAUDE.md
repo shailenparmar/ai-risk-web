@@ -132,6 +132,20 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
     idioms (punt, tap out, "& co.", "back in 2020"), insinuating adverbs ("quietly assume"),
     generic-you ("a utility you can point at problems"), newsletter framing ("The takeaway is...").
 
+## Concurrent sessions (ACTIVE as of 2026-07-09)
+
+Another Claude session is editing content in this same repo/working tree (e.g. f03325f lock-in copy,
+23adad8 epistemics copy). Protocol to avoid steamrolling it:
+1. Re-read the target lines IMMEDIATELY before every edit — never trust cached file state.
+2. Before committing: `git status` + `git log --oneline -3` first. NEVER blanket `git add -A` without
+   looking — stage only your own changes; if unrelated uncommitted changes exist, leave them unstaged
+   and say so.
+3. Before deploying: remember deploy ships the WHOLE current app.html, including the other session's
+   uncommitted work-in-progress. If the tree is dirty with changes you didn't make, hold the deploy
+   and check with the user.
+4. If an Edit fails on a stale old_string, assume the other session touched that region — re-read and
+   reconcile, don't force.
+
 ## Workflow
 
 1. Edit `app.html` → `node check.mjs` → `./preview.sh` → user reviews at localhost:8931.
