@@ -105,6 +105,12 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
     (backBtn, tn-nav, linkout) use `--ctrl` (ink 45%) so they read as pressable — content pills stay
     strongest (theme 85% / ink 60%). Rest weight is always 1px (2px is the hover cue). WEB|MATRIX tabs,
     search input, and the `.k` key-hint stay on --line (chrome/non-interactive, not action buttons).
+    Full ruling: rest-state COLOR says what a thing is (blue text = link/action, theme tint = concept,
+    ink = content); hover/focus says you're on it via INTENSITY ONLY, never a hue change. Search:
+    hover thickens, focus = thickened + --ctrl border (mobile media has its own padding pair).
+    titleLink hovers to an underline (+ ↗ glyph darkens); footer links intensify muted→ink. The only
+    accent-on-hover rules left are .plink (blue link intensifying its own blue underline — allowed:
+    intensity of self) and .brand (display:none on desktop, overridden on mobile — dead rule).
 
 ## Workflow
 
