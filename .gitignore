@@ -8,3 +8,6 @@ local-test.html
 node_modules/
 # scratch comparison pages for design decisions
 local-compare.html
+
+# Claude Code personal settings
+.claude/settings.local.json
