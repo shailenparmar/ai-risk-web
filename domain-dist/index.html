@@ -227,8 +227,8 @@
     /* notch tab: a small grabber protruding ABOVE the sheet's top edge instead of a full-width 38px
        bar — the content reclaims that space, and when collapsed only the tab peeks up. Visual is
        caret-sized; the ::after pad keeps the touch target comfortably larger. */
-    #panelHandle{position:absolute;top:-17px;left:50%;margin-left:-30px;width:60px;height:17px;
-      background:rgba(255,255,255,.8);border:1px solid var(--line);
+    #panelHandle{position:absolute;top:-17px;left:50%;margin-left:-40.5px;width:81px;height:17px;
+      background:rgba(255,255,255,.96);border:1px solid var(--line);
       border-bottom:0;border-radius:9px 9px 0 0;display:flex;align-items:center;justify-content:center;
       cursor:pointer;touch-action:none;user-select:none}
     #panelHandle::after{content:"";position:absolute;inset:-14px -26px}
@@ -399,7 +399,7 @@ const CONCEPTS = [
   b:'The feedback loop everything hinges on. AI agents do machine-learning research, running experiments, writing code, proposing architectures. AI 2027\'s entire scenario runs through it, from "superhuman coder" to "superhuman AI researcher," and labs explicitly target it. Erdil is skeptical. Research needs compute and real-world experiment, not just more thinking, so cognitive automation alone doesn\'t explode.',
   rel:['intel-explosion','drop-in-worker','agents','takeoff','algo-progress'], src:['s2','s3','s1','s4']},
  {id:'agi-timelines', t:'T', name:'AGI timelines',
-  b:'When does AI match humans at most cognitive work? This list deliberately spans the live range: AI 2027 dramatizes around 2027; Aschenbrenner says AGI by 2027 is "strikingly plausible"; Erdil\'s median for full remote-work automation is around 2045; Cotra and Narayanan debate how much warning we\'d get. The significance is not a specific date: serious, informed people can\'t currently rule out very short timelines, which is itself decision-relevant.',
+  b:'When does AI match humans at most cognitive work? AI 2027 dramatizes around 2027; Aschenbrenner says AGI by 2027 is "strikingly plausible"; Erdil\'s median for full remote-work automation is around 2045; Cotra and Narayanan debate how much warning we\'d get. The significance is not a specific date: serious, informed people can\'t currently rule out very short timelines, which is itself decision-relevant.',
   rel:['multi-decade','ooms','scenario-forecasting','bio-anchors','takeoff'], src:['s2','s3','s4','s6']},
  {id:'takeoff', t:'T', name:'Takeoff speeds',
   b:'Separate from when AGI arrives is how fast things move afterward. Fast takeoff (months, a software-driven explosion) versus slow takeoff (years to decades, bottlenecked by compute, robots, institutions). Takeoff speed determines almost everything strategic. Whether anyone can react, whether leads compound into decisive advantage, whether governance has time to work.',
@@ -420,7 +420,7 @@ const CONCEPTS = [
   b:'Aschenbrenner\'s term for capability gains that come from removing artificial limitations rather than scaling. It bundles two things: RLHF and prompting, which unlock latent useful intelligence the base model already had (an RLHF\'d model matched a non-RLHF\'d one 100x its size); and chain-of-thought, tools, longer context, and agent scaffolding, which add capability by spending more inference compute and handing the model external resources. Both let capabilities jump discontinuously without a new training run.',
   rel:['ooms','agents','inference-scaling'], src:['s3']},
  {id:'multi-decade', t:'T', name:'Multi-decade timelines',
-  b:'Erdil counters with a median of roughly 20 years to full automation of remote work (around 2045). His key arguments: AI revenue sits in the low tens of billions against a roughly $20T remotable wage bill, and he expects the growth curve to bend as the dotcom boom\'s did; no benchmark measures remote-work automation; and the software-only intelligence explosion is bottlenecked by experimental compute and data. This is not "never": he keeps roughly 30% probability on within a decade.',
+  b:'Erdil counters with a median of roughly 20 years to full automation of remote work (around 2045). His key arguments: AI revenue sits in the low tens of billions against a roughly $20T remotable wage bill, and he expects the growth curve to bend as the dotcom boom\'s did; no benchmark measures remote-work automation; and the software-only intelligence explosion is bottlenecked by experimental compute and data. The 20 years is a median, not a floor: he still places roughly 30% on full automation within a decade.',
   rel:['agi-timelines','diffusion','takeoff','speed-limit'], src:['s4','s6']},
  {id:'bio-anchors', t:'T', name:'Biological anchors',
   b:'Cotra\'s earlier framework for timeline forecasting estimates the compute needed to train a transformative model by anchoring on biology: the human brain\'s computation, the "compute" evolution spent, a lifetime of learning. From those anchors you track when hardware and spending get there. In 2020 it placed substantial probability on the 2030s–40s, and taught the field to argue about timelines quantitatively.',
