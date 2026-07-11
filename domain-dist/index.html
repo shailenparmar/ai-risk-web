@@ -13,7 +13,7 @@
 <style>
   :root{
     --bg:#FFFFFF; --bg2:#F7F8FA; --panel:#FFFFFF; --panel2:#F1F3F7;
-    --line:#E2E5EB; --ctrl:rgba(35,40,51,.45); --text:#16181D; --muted:#5A6472; --faint:#9AA2AE;
+    --line:#E2E5EB; --divider:#9EA0A4; --ctrl:rgba(35,40,51,.45); --text:#16181D; --muted:#5A6472; --faint:#9AA2AE;
     --accent:#3B63C4;
     --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
     --f-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
@@ -222,13 +222,14 @@
     #searchResults{width:min(290px,calc(100vw - 24px))}
     /* bottom sheet: slides down to reveal the full map, pulls back up for the reading */
     #panel{top:auto;left:0;right:0;bottom:0;width:auto;max-height:62vh;border-radius:16px 16px 0 0;border-bottom:0;
+      border-color:var(--divider);
       transition:transform .28s cubic-bezier(.32,.72,0,1);will-change:transform}
     #panel.collapsed{transform:translateY(100%)} /* body fully off-screen; only the notch tab shows */
     /* notch tab: a small grabber protruding ABOVE the sheet's top edge instead of a full-width 38px
        bar — the content reclaims that space, and when collapsed only the tab peeks up. Visual is
        caret-sized; the ::after pad keeps the touch target comfortably larger. */
     #panelHandle{position:absolute;top:-17px;left:50%;margin-left:-40.5px;width:81px;height:17px;
-      background:rgba(255,255,255,.96);border:1px solid var(--line);
+      background:rgba(255,255,255,.96);border:1px solid var(--divider);
       border-bottom:0;border-radius:9px 9px 0 0;display:flex;align-items:center;justify-content:center;
       cursor:pointer;touch-action:none;user-select:none}
     #panelHandle::after{content:"";position:absolute;inset:-14px -26px}
@@ -242,7 +243,7 @@
   }
   /* ===== 2026-07-06 redesign: docked sidebar, matrix cleanup, saturated theme tints ===== */
   @media (min-width:861px){
-    #panel{top:0;left:0;bottom:0;width:376px;border-radius:0;border:0;border-right:1px solid var(--line);box-shadow:none;background:#fff;backdrop-filter:none}
+    #panel{top:0;left:0;bottom:0;width:376px;border-radius:0;border:0;border-right:1px solid var(--divider);box-shadow:none;background:#fff;backdrop-filter:none}
     .brand{display:none}
     #panelScroll{padding:16px 12px 20px}
     /* wordmark = first scrolling line of the column body */
