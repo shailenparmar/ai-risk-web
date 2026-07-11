@@ -211,14 +211,14 @@
     #searchResults{width:min(290px,calc(100vw - 24px))}
     /* bottom sheet: slides down to reveal the full map, pulls back up for the reading */
     #panel{top:auto;left:0;right:0;bottom:0;width:auto;max-height:62vh;border-radius:16px 16px 0 0;
-      border:1.265px solid var(--divider);border-bottom:0;
+      border:2px solid var(--divider);border-bottom:0;
       transition:transform .28s cubic-bezier(.32,.72,0,1);will-change:transform}
     #panel.collapsed{transform:translateY(calc(100% - 2px))} /* leave just the sheet's top border (divider line) peeking on either side of the notch; body hidden */
     /* notch tab: a small grabber protruding ABOVE the sheet's top edge instead of a full-width 38px
        bar — the content reclaims that space, and when collapsed only the tab peeks up. Visual is
        caret-sized; the ::after pad keeps the touch target comfortably larger. */
     #panelHandle{position:absolute;top:-18.7px;left:50%;margin-left:-51.15px;width:102.3px;height:18.7px;
-      background:rgba(255,255,255,.8);border:1.265px solid var(--divider);
+      background:rgba(255,255,255,.8);border:2px solid var(--divider);
       border-bottom:0;border-radius:9px 9px 0 0;display:flex;align-items:center;justify-content:center;
       cursor:pointer;touch-action:none;user-select:none}
     /* the tab sits FLUSH at the sheet edge (bottom on the divider line, protruding above it). The scroll
@@ -231,6 +231,8 @@
     #panelHandle .caret{width:8px;height:8px;border-right:2.5px solid #737981;border-bottom:2.5px solid #737981;
       transform:translateY(-2px) rotate(45deg);transition:transform .22s}
     #panel.collapsed #panelHandle .caret{transform:translateY(2px) rotate(225deg)}
+    /* retracted: make the face fully opaque so no scrolled-up text peeks through — clean tab */
+    #panel.collapsed #panelHandle{background:#fff}
     /* the scroll area reaches UP into the notch: negative margin lifts its box over the divider line,
        the clip-path narrows it to the notch's width above the line (full width below) so text scrolls
        past the line into the tab and nowhere else. padding-top (8 + notch height) keeps the first line
@@ -242,7 +244,7 @@
   }
   /* ===== 2026-07-06 redesign: docked sidebar, matrix cleanup, saturated theme tints ===== */
   @media (min-width:861px){
-    #panel{top:0;left:0;bottom:0;width:376px;border-radius:0;border:0;border-right:1.265px solid var(--divider);box-shadow:none;background:#fff;backdrop-filter:none}
+    #panel{top:0;left:0;bottom:0;width:376px;border-radius:0;border:0;border-right:2px solid var(--divider);box-shadow:none;background:#fff;backdrop-filter:none}
     .brand{display:none}
     #panelScroll{padding:16px 12px 20px}
     /* wordmark = first scrolling line of the column body */
