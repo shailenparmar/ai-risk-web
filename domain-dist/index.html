@@ -221,7 +221,7 @@
     #search:hover,#search:focus{padding:3px 8px} /* hover/focus padding pair for the mobile base padding */
     #searchResults{width:min(290px,calc(100vw - 24px))}
     /* bottom sheet: slides down to reveal the full map, pulls back up for the reading */
-    #panel{top:auto;left:0;right:0;bottom:0;width:auto;max-height:53vh;border-radius:16px 16px 0 0;
+    #panel{top:auto;left:0;right:0;bottom:0;width:auto;max-height:58vh;border-radius:16px 16px 0 0;
       border:2px solid var(--divider);border-bottom:0;
       transition:transform .28s cubic-bezier(.32,.72,0,1);will-change:transform}
     #panel.collapsed{transform:translateY(calc(100% - 2px))} /* leave just the sheet's top border (divider line) peeking on either side of the notch; body hidden */
@@ -255,7 +255,7 @@
   }
   /* ===== 2026-07-06 redesign: docked sidebar, matrix cleanup, saturated theme tints ===== */
   @media (min-width:861px){
-    #panel{top:0;left:0;bottom:0;width:320px;border-radius:0;border:0;border-right:2px solid var(--divider);box-shadow:none;background:#fff;backdrop-filter:none}
+    #panel{top:0;left:0;bottom:0;width:352px;border-radius:0;border:0;border-right:2px solid var(--divider);box-shadow:none;background:#fff;backdrop-filter:none}
     .brand{display:none}
     #panelScroll{padding:16px 12px 20px}
     /* wordmark = first scrolling line of the column body */
@@ -839,7 +839,7 @@ let hoverId=null, selectedId=null, hoverTheme=null, selTheme=null;
 let view='map';
 const themeOn={}; Object.keys(THEMES).forEach(k=>themeOn[k]=true);
 const isMobile=()=>innerWidth<=860;
-const PANEL_W=332; // panel width + margins (docked sidebar)
+const PANEL_W=364; // panel width + margins (docked sidebar)
 const PANEL_PEEK=17; // px visible when collapsed = the protruding notch tab (sheet body is fully off-screen)
 let panelCollapsed=false; // mobile bottom-sheet state
 const panelEl=()=>document.getElementById('panel');
