@@ -218,7 +218,7 @@
        bar — the content reclaims that space, and when collapsed only the tab peeks up. Visual is
        caret-sized; the ::after pad keeps the touch target comfortably larger. */
     #panelHandle{position:absolute;top:-18.7px;left:50%;margin-left:-51.15px;width:102.3px;height:18.7px;
-      background:rgba(255,255,255,.5);border:1.1px solid var(--divider);
+      background:rgba(255,255,255,.8);border:1.1px solid var(--divider);
       border-bottom:0;border-radius:9px 9px 0 0;display:flex;align-items:center;justify-content:center;
       cursor:pointer;touch-action:none;user-select:none}
     /* the tab sits FLUSH at the sheet edge (bottom on the divider line, protruding above it). The scroll
@@ -278,7 +278,7 @@
   </div>
 </header>
 
-<div id="panel"><div id="panelHandle" title="Show/hide the map"><span class="caret"></span></div><div id="panelScroll"></div></div>
+<div id="panel"><div id="panelScroll"></div><div id="panelHandle" title="Show/hide the map"><span class="caret"></span></div></div>
 
 <div id="resetHint">double-click or esc to reset</div>
 
