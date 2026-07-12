@@ -212,8 +212,10 @@
     /* bottom sheet: slides down to reveal the full map, pulls back up for the reading */
     #panel{top:auto;left:0;right:0;bottom:0;width:auto;max-height:62vh;border-radius:16px 16px 0 0;
       border:2px solid var(--divider);border-bottom:0;
-      transition:transform .28s cubic-bezier(.32,.72,0,1);will-change:transform}
-    #panel.collapsed{transform:translateY(calc(100% - 2px))} /* leave just the sheet's top border (divider line) peeking on either side of the notch; body hidden */
+      transition:transform .28s cubic-bezier(.32,.72,0,1),bottom .28s cubic-bezier(.32,.72,0,1);will-change:transform}
+    /* when retracted, lift the whole sheet 5vh off the bottom so the notch clears the iPhone home
+       indicator — the gap below shows the map (body still hidden), and bottom transitions with transform */
+    #panel.collapsed{transform:translateY(calc(100% - 2px));bottom:5vh} /* leave just the sheet's top border (divider line) peeking on either side of the notch; body hidden */
     /* notch tab: a small grabber protruding ABOVE the sheet's top edge instead of a full-width 38px
        bar — the content reclaims that space, and when collapsed only the tab peeks up. Visual is
        caret-sized; the ::after pad keeps the touch target comfortably larger. */
@@ -835,7 +837,7 @@ const panelEl=()=>document.getElementById('panel');
 // how many px the bottom sheet covers at the bottom of the screen (0 on desktop)
 function botOccupied(){
   if(!isMobile()) return 0;
-  if(panelCollapsed) return PANEL_PEEK;
+  if(panelCollapsed) return PANEL_PEEK+Math.round(H*0.05); // +5vh gap that lifts the retracted notch off the home indicator (matches #panel.collapsed bottom)
   return Math.min(panelEl().offsetHeight, Math.round(H*0.62));
 }
 
