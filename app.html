@@ -1303,17 +1303,19 @@ function resetView(){
   dirty=true;
 }
 /* ---------- mobile bottom-sheet: collapse to reveal the map, expand to read ---------- */
-function reframe(){ // re-fit the camera to the current focus for the current visible area
-  if(view!=='map') return;
-  if(selectedId&&byId[selectedId]){ const n=byId[selectedId]; goTo({x:n.x,y:n.y,z:Math.max(cam.z,0.85)}); }
-  else if(selTheme&&clusters[selTheme]){ const cl=clusters[selTheme]; goTo({x:cl.x,y:cl.y,z:cam.z}); }
-  else goTo(fit());
-}
 function setPanelCollapsed(v){
   if(!isMobile()) return;
+  if(v===panelCollapsed){ panelEl().classList.toggle('collapsed',v); return; }
+  // Anchor the map: toggling the sheet changes how much screen it covers, which shifts centerY(). Keeping
+  // the SAME world point at the SAME screen position (compensate cam.y by the centerY delta) means retract
+  // only REVEALS more map and expand only COVERS it — the spot the user framed never moves. Do NOT reframe
+  // or re-fit here; the whole point is that adjusting the map with the panel open survives a retract.
+  const cyBefore=centerY();
   panelCollapsed=v;
   panelEl().classList.toggle('collapsed',v);
-  reframe();
+  const dy=(centerY()-cyBefore)/cam.z;
+  cam.y+=dy; if(camT) camT.y+=dy; // keep any in-flight camera tween consistent too
+  dirty=true;
 }
 (function wirePanelHandle(){
   const p=panelEl(); const h=document.getElementById('panelHandle'); if(!p||!h) return;
