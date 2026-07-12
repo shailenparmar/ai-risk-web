@@ -1236,7 +1236,10 @@ function navRowHTML(bottom){
   return `<div class="backRow"${bottom?' style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line)"':''}><button class="backBtn" data-back-home>◀ HOME</button>${navStack.length?'<button class="backBtn" data-back-prev>◀ BACK</button>':''}</div>`;
 }
 function selectTheme(k,push=true){
-  if(push&&!walk&&k===selTheme&&!selectedId) return; // re-clicking the theme you're already on isn't a new nav
+  if(push&&!walk&&k===selTheme&&!selectedId){ // re-clicking the theme you're already on isn't a new nav...
+    if(isMobile()&&panelCollapsed) setPanelCollapsed(false); // ...but re-tapping after a retract re-opens its text
+    return;
+  }
   if(walk) walk=null;
   if(push){ pushNav(); pushHistLevel(); }
   selectedId=null; selTheme=k; hoverTheme=null; dirty=true;
@@ -1269,7 +1272,10 @@ function renderTheme(k){
   panel.scrollTop=0;
 }
 function select(id,push=true){
-  if(push&&!walk&&id===selectedId) return; // re-clicking the concept you're already on isn't a new nav
+  if(push&&!walk&&id===selectedId){ // re-clicking the concept you're already on isn't a new nav...
+    if(isMobile()&&panelCollapsed) setPanelCollapsed(false); // ...but if you retracted the text, re-tapping the same node brings its text back
+    return;
+  }
   if(push&&walk) walk=null; // a genuine map/panel click ends the walk (showWalkStop uses push=false)
   if(push){ pushNav(); pushHistLevel(); }
   selectedId=id; selTheme=null; dirty=true;
