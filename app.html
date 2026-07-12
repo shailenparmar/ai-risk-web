@@ -215,7 +215,8 @@
       transition:transform .28s cubic-bezier(.32,.72,0,1),bottom .28s cubic-bezier(.32,.72,0,1);will-change:transform}
     /* when retracted, lift the whole sheet 5vh off the bottom so the notch clears the iPhone home
        indicator — the gap below shows the map (body still hidden), and bottom transitions with transform */
-    #panel.collapsed{transform:translateY(calc(100% - 2px));bottom:5vh} /* leave just the sheet's top border (divider line) peeking on either side of the notch; body hidden */
+    #panel.collapsed{transform:translateY(calc(100% - 2px));bottom:5vh;touch-action:none} /* retracted: sheet sits 5vh off the bottom (clears the home indicator); only the notch + a small blank paper strip show */
+    #panel.collapsed #panelScroll{visibility:hidden} /* retracted = no body content: hide all buttons/text so only the grabber + blank strip peek (the strip is still a tap/drag target — see wirePanelHandle) */
     /* notch tab: a small grabber protruding ABOVE the sheet's top edge instead of a full-width 38px
        bar — the content reclaims that space, and when collapsed only the tab peeks up. Visual is
        caret-sized; the ::after pad keeps the touch target comfortably larger. */
@@ -1315,31 +1316,37 @@ function setPanelCollapsed(v){
   reframe();
 }
 (function wirePanelHandle(){
-  const h=document.getElementById('panelHandle'); if(!h) return;
+  const p=panelEl(); const h=document.getElementById('panelHandle'); if(!p||!h) return;
   let drag=null;
-  const collapsedT=()=>panelEl().offsetHeight; // collapsed = body fully off-screen (notch tab protrudes above and stays visible)
-  h.addEventListener('pointerdown',e=>{
+  const collapsedT=()=>p.offsetHeight; // collapsed = body fully off-screen (notch tab protrudes above and stays visible)
+  const onHandle=e=> !!(e.target && e.target.closest && e.target.closest('#panelHandle'));
+  // Engage the grab from the notch OR, while retracted, from anywhere on the sheet (the peeking paper
+  // strip is a tap/drag target too — when collapsed #panelScroll is visibility:hidden so its buttons
+  // don't intercept and the touch falls through to #panel). When expanded, only the notch grabs; taps
+  // and scrolls on the body behave normally.
+  p.addEventListener('pointerdown',e=>{
     if(!isMobile()) return;
-    drag={y:e.clientY,moved:0}; h.setPointerCapture(e.pointerId);
-    panelEl().style.transition='none';
+    if(!panelCollapsed && !onHandle(e)) return;
+    drag={y:e.clientY,moved:0}; p.setPointerCapture(e.pointerId);
+    p.style.transition='none';
   });
-  h.addEventListener('pointermove',e=>{
+  p.addEventListener('pointermove',e=>{
     if(!drag) return;
     drag.moved=e.clientY-drag.y;
     const ct=collapsedT();
     const t=Math.max(0,Math.min(ct,(panelCollapsed?ct:0)+drag.moved));
-    panelEl().style.transform='translateY('+t+'px)';
+    p.style.transform='translateY('+t+'px)';
   });
   const end=e=>{
     if(!drag) return;
     const moved=drag.moved; drag=null;
-    panelEl().style.transition=''; panelEl().style.transform='';
+    p.style.transition=''; p.style.transform='';
     // very sensitive & biased toward the new action: a tiny nudge down hides, a tiny nudge up shows, a tap toggles
     if(Math.abs(moved)<=6) setPanelCollapsed(!panelCollapsed);
     else setPanelCollapsed(moved>0);
   };
-  h.addEventListener('pointerup',end);
-  h.addEventListener('pointercancel',end);
+  p.addEventListener('pointerup',end);
+  p.addEventListener('pointercancel',end);
 })();
 function backLabel(){ return walk ? '◀ EXIT WALK' : '◀ HOME'; }
 
