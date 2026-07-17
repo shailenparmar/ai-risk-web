@@ -21,6 +21,12 @@ HTML file — no libraries, no build step, everything hand-rolled on canvas.
 ## Files here
 
 - `app.html` — THE canonical source (everything: CSS, data, renderer, UI). Edit this.
+- `style-guide.html` — self-contained written-content + visual style guide (Part I Content & Voice,
+  Part II Visual System). LIVE at https://airiskweb.com/style-guide (Cloudflare serves the clean URL;
+  `/style-guide.html` 307-redirects there). Portfolio piece for a writing-heavy role — register is
+  matter-of-fact, no meta/cutesy framing (user rulings during the 2026-07-17 build). Shipped by
+  `deploy-domain.sh` (copies it into `domain-dist/`); linked from the app home-panel footer
+  (`/style-guide`) and the shailenparmar.com AI Risk Web card.
 - `check.mjs` — data-integrity gate (`node check.mjs`): every rel/src/concept/walk/crux/vs id must resolve,
   walks 5+ stops with 30+ char notes, walk stops must be among the source's concepts, no orphan nodes.
   RUN AFTER EVERY DATA EDIT.
