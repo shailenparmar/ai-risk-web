@@ -223,8 +223,11 @@
     /* bottom sheet: slides down to reveal the full map, pulls back up for the reading */
     #panel{top:auto;left:0;right:0;bottom:0;width:auto;max-height:62vh;border-radius:16px 16px 0 0;
       border:2px solid var(--divider);border-bottom:0;
-      transition:transform .28s cubic-bezier(.32,.72,0,1);will-change:transform}
-    #panel.collapsed{transform:translateY(calc(100% - 2px))} /* leave just the sheet's top border (divider line) peeking on either side of the notch; body hidden */
+      transition:transform .28s cubic-bezier(.32,.72,0,1),bottom .28s cubic-bezier(.32,.72,0,1);will-change:transform}
+    /* when retracted, lift the whole sheet 5vh off the bottom so the notch clears the iPhone home
+       indicator — the gap below shows the map (body still hidden), and bottom transitions with transform */
+    #panel.collapsed{transform:translateY(calc(100% - 2px));bottom:5vh;touch-action:none} /* retracted: sheet sits 5vh off the bottom (clears the home indicator); only the notch + a small blank paper strip show */
+    #panel.collapsed #panelScroll{visibility:hidden} /* retracted = no body content: hide all buttons/text so only the grabber + blank strip peek (the strip is still a tap/drag target — see wirePanelHandle) */
     /* notch tab: a small grabber protruding ABOVE the sheet's top edge instead of a full-width 38px
        bar — the content reclaims that space, and when collapsed only the tab peeks up. Visual is
        caret-sized; the ::after pad keeps the touch target comfortably larger. */
@@ -702,14 +705,14 @@ const WALKS={
   {id:'agi-timelines', note:"Where he lands is decades, not years, though he keeps roughly 30% on full remote-work automation within ten."}],
  s5:[
   {id:'hinge', note:"The claim that frames the whole list is that this century, maybe these decades, could matter more than any other in history."},
-  {id:'tai', note:"His object of study is AI transformative enough to rank with the agricultural and industrial revolutions. No consciousness debates required."},
+  {id:'tai', note:"His object of study is AI transformative enough to rank with the agricultural and industrial revolutions. The definition turns on impact, so the argument does not depend on settling what the systems are like inside."},
   {id:'pasta', note:"The mechanism is PASTA, AI that automates science and technology itself, closing the innovation feedback loop."},
   {id:'digital-people', note:"At the far end of what's possible are copyable digital minds, which is why the future could contain astronomically many morally relevant beings."},
   {id:'lock-in', note:"With that power comes the possibility of locking in values or regimes permanently, for good or for catastrophe."},
   {id:'xrisk', note:"On the dark branch, misaligned PASTA is one of the clearest paths to permanently losing the future."},
   {id:'longtermism', note:"The normative frame puts stakes across all future generations, though he closes with a 'Call to Vigilance,' not a call to action. He urges taking it seriously before rushing to act."}],
  s6:[
-  {id:'speed-limit', note:"The dialogue asks what actually limits how fast AI changes the world. The models, or everything around them?"},
+  {id:'speed-limit', note:"The dialogue's question is where the rate limiter on AI's impact sits: in model capability, or in the diffusion layer — the organizations, regulation, and infrastructure that have to absorb it."},
   {id:'bio-anchors', note:"This draws on Cotra's earlier work, not the dialogue itself. She anchors timelines to the compute of biological intelligence to produce a quantitative timeline estimate."},
   {id:'diffusion', note:"Narayanan's core claim is that AI is normal technology, so impact arrives gradually over decades. Running a company without the internet would be absurd today, and that adoption took decades too."},
   {id:'labor-displacement', note:"The dialogue's labor thread treats jobs as bundles of tasks that redefine around what AI can't do, until humans risk becoming CEOs on paper who defer to the AI."},
@@ -723,7 +726,7 @@ const WALKS={
   {id:'latency-wall', note:"Constraint #4 is the physics one. Somewhere past roughly 10⁵x GPT-4, cumulative interconnect latencies bind. That's beyond 2030's plans, but a real ceiling."},
   {id:'algo-progress', note:"The report brackets one wildcard. Epoch's separate work finds efficiency gains have historically rivaled hardware, and automated research would accelerate exactly this."}],
  s8:[
-  {id:'aps', note:"He defines the dangerous class as Advanced, Planning, Strategically aware systems. The paper analyzes these, not chatbots."},
+  {id:'aps', note:"He defines the dangerous class as APS systems: advanced capability, agentic planning, strategic awareness. The argument applies to systems with all three properties, not to AI systems in general."},
   {id:'instrumental-convergence', note:"The engine of the argument is that almost any goal is served by acquiring power and avoiding shutdown."},
   {id:'misalignment', note:"Premise 3 is that getting the right goals into strategically aware agents is hard. Training grows goals, it doesn't write them."},
   {id:'goal-misgen', note:"It fails in one concrete way. The goal that fit training diverges exactly when the world changes and the agent has new options."},
@@ -846,7 +849,7 @@ const panelEl=()=>document.getElementById('panel');
 // how many px the bottom sheet covers at the bottom of the screen (0 on desktop)
 function botOccupied(){
   if(!isMobile()) return 0;
-  if(panelCollapsed) return PANEL_PEEK;
+  if(panelCollapsed) return PANEL_PEEK+Math.round(H*0.05); // +5vh gap that lifts the retracted notch off the home indicator (matches #panel.collapsed bottom)
   return Math.min(panelEl().offsetHeight, Math.round(H*0.62));
 }
 
@@ -1179,7 +1182,7 @@ function showHome(){
     </div>
     <div id="homeFooter">
       <span><a href="https://shailenparmar.com" target="_blank" rel="noopener">Shailen Parmar</a> 2026</span>
-      <span><a href="https://github.com/shailenparmar/ai-risk-web" target="_blank" rel="noopener">github</a><span class="dot">·</span><a href="https://shailenparmar.com/connect" target="_blank" rel="noopener">contact</a></span>
+      <span><a href="/style-guide">style guide</a><span class="dot">·</span><a href="https://github.com/shailenparmar/ai-risk-web" target="_blank" rel="noopener">github</a><span class="dot">·</span><a href="https://shailenparmar.com/connect" target="_blank" rel="noopener">contact</a></span>
     </div>
    </div>`;
   homeShown=true;
@@ -1244,7 +1247,10 @@ function navRowHTML(bottom){
   return `<div class="backRow"${bottom?' style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line)"':''}><button class="backBtn" data-back-home>◀ HOME</button>${navStack.length?'<button class="backBtn" data-back-prev>◀ BACK</button>':''}</div>`;
 }
 function selectTheme(k,push=true){
-  if(push&&!walk&&k===selTheme&&!selectedId) return; // re-clicking the theme you're already on isn't a new nav
+  if(push&&!walk&&k===selTheme&&!selectedId){ // re-clicking the theme you're already on isn't a new nav...
+    if(isMobile()&&panelCollapsed) setPanelCollapsed(false); // ...but re-tapping after a retract re-opens its text
+    return;
+  }
   if(walk) walk=null;
   if(push){ pushNav(); pushHistLevel(); }
   selectedId=null; selTheme=k; hoverTheme=null; dirty=true;
@@ -1277,7 +1283,10 @@ function renderTheme(k){
   panel.scrollTop=0;
 }
 function select(id,push=true){
-  if(push&&!walk&&id===selectedId) return; // re-clicking the concept you're already on isn't a new nav
+  if(push&&!walk&&id===selectedId){ // re-clicking the concept you're already on isn't a new nav...
+    if(isMobile()&&panelCollapsed) setPanelCollapsed(false); // ...but if you retracted the text, re-tapping the same node brings its text back
+    return;
+  }
   if(push&&walk) walk=null; // a genuine map/panel click ends the walk (showWalkStop uses push=false)
   if(push){ pushNav(); pushHistLevel(); }
   selectedId=id; selTheme=null; dirty=true;
@@ -1311,44 +1320,52 @@ function resetView(){
   dirty=true;
 }
 /* ---------- mobile bottom-sheet: collapse to reveal the map, expand to read ---------- */
-function reframe(){ // re-fit the camera to the current focus for the current visible area
-  if(view!=='map') return;
-  if(selectedId&&byId[selectedId]){ const n=byId[selectedId]; goTo({x:n.x,y:n.y,z:Math.max(cam.z,0.85)}); }
-  else if(selTheme&&clusters[selTheme]){ const cl=clusters[selTheme]; goTo({x:cl.x,y:cl.y,z:cam.z}); }
-  else goTo(fit());
-}
 function setPanelCollapsed(v){
   if(!isMobile()) return;
+  if(v===panelCollapsed){ panelEl().classList.toggle('collapsed',v); return; }
+  // Anchor the map: toggling the sheet changes how much screen it covers, which shifts centerY(). Keeping
+  // the SAME world point at the SAME screen position (compensate cam.y by the centerY delta) means retract
+  // only REVEALS more map and expand only COVERS it — the spot the user framed never moves. Do NOT reframe
+  // or re-fit here; the whole point is that adjusting the map with the panel open survives a retract.
+  const cyBefore=centerY();
   panelCollapsed=v;
   panelEl().classList.toggle('collapsed',v);
-  reframe();
+  const dy=(centerY()-cyBefore)/cam.z;
+  cam.y+=dy; if(camT) camT.y+=dy; // keep any in-flight camera tween consistent too
+  dirty=true;
 }
 (function wirePanelHandle(){
-  const h=document.getElementById('panelHandle'); if(!h) return;
+  const p=panelEl(); const h=document.getElementById('panelHandle'); if(!p||!h) return;
   let drag=null;
-  const collapsedT=()=>panelEl().offsetHeight; // collapsed = body fully off-screen (notch tab protrudes above and stays visible)
-  h.addEventListener('pointerdown',e=>{
+  const collapsedT=()=>p.offsetHeight; // collapsed = body fully off-screen (notch tab protrudes above and stays visible)
+  const onHandle=e=> !!(e.target && e.target.closest && e.target.closest('#panelHandle'));
+  // Engage the grab from the notch OR, while retracted, from anywhere on the sheet (the peeking paper
+  // strip is a tap/drag target too — when collapsed #panelScroll is visibility:hidden so its buttons
+  // don't intercept and the touch falls through to #panel). When expanded, only the notch grabs; taps
+  // and scrolls on the body behave normally.
+  p.addEventListener('pointerdown',e=>{
     if(!isMobile()) return;
-    drag={y:e.clientY,moved:0}; h.setPointerCapture(e.pointerId);
-    panelEl().style.transition='none';
+    if(!panelCollapsed && !onHandle(e)) return;
+    drag={y:e.clientY,moved:0}; p.setPointerCapture(e.pointerId);
+    p.style.transition='none';
   });
-  h.addEventListener('pointermove',e=>{
+  p.addEventListener('pointermove',e=>{
     if(!drag) return;
     drag.moved=e.clientY-drag.y;
     const ct=collapsedT();
     const t=Math.max(0,Math.min(ct,(panelCollapsed?ct:0)+drag.moved));
-    panelEl().style.transform='translateY('+t+'px)';
+    p.style.transform='translateY('+t+'px)';
   });
   const end=e=>{
     if(!drag) return;
     const moved=drag.moved; drag=null;
-    panelEl().style.transition=''; panelEl().style.transform='';
+    p.style.transition=''; p.style.transform='';
     // very sensitive & biased toward the new action: a tiny nudge down hides, a tiny nudge up shows, a tap toggles
     if(Math.abs(moved)<=6) setPanelCollapsed(!panelCollapsed);
     else setPanelCollapsed(moved>0);
   };
-  h.addEventListener('pointerup',end);
-  h.addEventListener('pointercancel',end);
+  p.addEventListener('pointerup',end);
+  p.addEventListener('pointercancel',end);
 })();
 function backLabel(){ return walk ? '◀ EXIT WALK' : '◀ HOME'; }
 

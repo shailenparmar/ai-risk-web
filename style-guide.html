@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Risk Web — Style Guide</title>
+<meta name="description" content="The working style guide behind AI Risk Web — the content and voice rules first, then the visual system. Written and maintained by Shailen Parmar.">
+<link rel="canonical" href="https://airiskweb.com/style-guide">
+<link rel="icon" href="/favicon.svg">
+<style>
+  :root{
+    --bg:#FFFFFF; --bg2:#F7F8FA; --panel2:#F1F3F7;
+    --line:#E2E5EB; --ctrl:rgba(35,40,51,.45);
+    --text:#16181D; --muted:#5A6472; --faint:#9AA2AE; --body:#3A4150;
+    --accent:#3B63C4; --red:#C7364C; --green:#238B53;
+    --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --f-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:var(--f-sans);line-height:1.55;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:820px;margin:0 auto;padding:40px 28px 110px}
+
+  /* top bar */
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding-bottom:22px;border-bottom:1px solid var(--line)}
+  .brand{font-family:var(--f-mono);font-size:16px;font-weight:700;letter-spacing:.2em;color:var(--text);
+    text-decoration:none;padding-left:27px;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><line x1='8' y1='21' x2='24' y2='11' stroke='%23C7364C' stroke-width='2.6' stroke-dasharray='3 2.4' stroke-linecap='round'/><circle cx='8' cy='21' r='4' fill='%23232833'/><circle cx='24' cy='11' r='4' fill='%23232833'/></svg>") no-repeat left center;background-size:19px 19px}
+  .backlink{font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);
+    text-decoration:none;border:1px solid var(--ctrl);border-radius:6px;padding:6px 11px}
+  .backlink:hover{border-width:2px;padding:5px 10px}
+
+  /* masthead */
+  .eyebrow{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--faint);margin:44px 0 10px}
+  h1{font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1.1;text-wrap:balance}
+  .lede{font-size:16px;color:var(--body);margin:16px 0 0;line-height:1.62;max-width:660px}
+  .meta{font-family:var(--f-mono);font-size:11px;letter-spacing:.03em;color:var(--muted);margin-top:18px}
+  .meta b{color:var(--text);font-weight:400}
+
+  /* contents */
+  .toc{display:grid;grid-template-columns:1fr 1fr;gap:14px 28px;margin:26px 0 4px;
+    border:1px solid var(--line);border-radius:8px;padding:16px 18px;background:var(--bg2)}
+  @media(max-width:560px){.toc{grid-template-columns:1fr;gap:16px}}
+  .toc-col{display:flex;flex-direction:column}
+  .toc a{text-decoration:none;color:var(--muted);font-size:13px;line-height:1.5;padding:2px 0;width:fit-content}
+  .toc a:hover{color:var(--text)}
+  .toc .toc-h{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:5px;padding-bottom:6px;border-bottom:1px solid var(--line);width:100%}
+  .toc .toc-h:hover{color:var(--accent)}
+
+  /* part divider */
+  .part{margin:64px 0 6px;padding-top:22px;border-top:2px solid var(--text)}
+  .part .k{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+  .part h2{font-size:25px;font-weight:700;letter-spacing:-.015em;margin-top:4px}
+  .part p{font-size:14.5px;color:var(--body);line-height:1.62;margin-top:12px;max-width:660px}
+
+  /* section header — mono uppercase over a top border */
+  .sect{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--faint);margin:44px 0 16px;padding-top:15px;border-top:1px solid var(--line)}
+  h3{font-size:17px;font-weight:700;letter-spacing:-.01em;margin:26px 0 8px}
+  p{font-size:14.5px;color:var(--body);line-height:1.62;max-width:660px}
+  p+p{margin-top:12px}
+  strong{color:var(--text);font-weight:600}
+  a.link{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(59,99,196,.35)}
+  a.link:hover{border-bottom-color:var(--accent)}
+
+  /* law list */
+  .laws{list-style:none;counter-reset:l;margin:6px 0 0}
+  .laws li{counter-increment:l;position:relative;padding:13px 0 13px 40px;border-top:1px solid var(--line);
+    font-size:14.5px;color:var(--body);line-height:1.55;max-width:680px}
+  .laws li:first-child{border-top:0}
+  .laws li::before{content:counter(l);position:absolute;left:0;top:12px;font-family:var(--f-mono);
+    font-size:11px;font-weight:700;color:var(--accent);width:24px;height:24px;line-height:24px;text-align:center;
+    border:1px solid rgba(59,99,196,.4);border-radius:99px}
+  .laws li b{color:var(--text);font-weight:600}
+  .psub{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:20px 0 6px}
+  .plist{list-style:none;margin:0}
+  .plist li{font-size:14px;color:var(--body);line-height:1.5;padding:8px 0;border-top:1px solid var(--line);max-width:680px}
+  .plist li:first-child{border-top:0}
+  .plist li b{color:var(--text);font-weight:600}
+  /* principle examples with a live visual (Look & feedback) */
+  .pex{display:grid;grid-template-columns:210px 1fr;gap:22px;align-items:center;padding:15px 0;border-top:1px solid var(--line)}
+  .pex:first-of-type{border-top:0}
+  @media(max-width:560px){.pex{grid-template-columns:1fr;gap:11px}}
+  .pex .t{font-size:14px;color:var(--body);line-height:1.5;max-width:460px}
+  .pex .t b{color:var(--text);font-weight:600}
+  .pex .d{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+  .excol{display:inline-flex;flex-direction:column;align-items:center;gap:5px}
+  .exlbl{font-family:var(--f-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+  .minibox{font-family:var(--f-mono);font-size:10px;letter-spacing:.04em;color:var(--muted);padding:11px 13px;border-radius:6px;background:#fff}
+  .minibox.b{border:1px solid var(--ctrl)}
+  .minibox.s{box-shadow:0 6px 16px rgba(30,40,60,.18);border:0;opacity:.5}
+  .exline{font-family:var(--f-sans);font-size:13px;color:var(--text);line-height:1.5}
+  .exline a{color:var(--accent);border-bottom:1px solid rgba(59,99,196,.35);text-decoration:none}
+  .exsans{font-family:var(--f-sans);font-size:13px;color:var(--body)}
+  .exmono{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-top:3px}
+  .exhint{font-family:var(--f-sans);font-size:11px;color:var(--faint)}
+  .btnx.is-hover{border-width:2px;padding:6px 12px}
+
+  /* callout boxes (tint formula) */
+  .box{border-radius:8px;padding:14px 16px;margin:18px 0;font-size:14px;line-height:1.6;color:var(--body)}
+  .box .h{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:7px}
+  .box.blue{background:rgba(59,99,196,.06);border:1px solid rgba(59,99,196,.28)}
+  .box.blue .h{color:#2b4aa0}
+  .box.gold{background:rgba(168,134,43,.08);border:1px solid rgba(168,134,43,.34)}
+  .box.gold .h{color:#7d6420}
+
+  /* allow / ban lists */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+  @media(max-width:640px){.cols{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);border-radius:8px;padding:15px 16px}
+  .card .h{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+  .card.ban{border-color:rgba(199,54,76,.32);background:rgba(199,54,76,.035)}
+  .card.ban .h{color:var(--red)}
+  .card.ok{border-color:rgba(35,139,83,.34);background:rgba(35,139,83,.04)}
+  .card.ok .h{color:var(--green)}
+  .card ul{list-style:none;margin:0}
+  .card li{font-size:13.5px;color:var(--body);line-height:1.5;padding:6px 0;border-top:1px solid var(--line)}
+  .card li:first-child{border-top:0}
+  .card li .ex{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+  .card li b{color:var(--text);font-weight:600}
+
+  /* correction cards */
+  .corr{border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:14px 0}
+  .corr .tag{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;
+    padding:9px 14px;color:var(--faint);background:var(--bg2);border-bottom:1px solid var(--line)}
+  .corr .tag b{color:var(--muted);font-weight:600}
+  .corr .pair{display:grid;grid-template-columns:1fr 1fr}
+  @media(max-width:640px){.corr .pair{grid-template-columns:1fr}}
+  .corr .cell{padding:13px 15px;font-size:13.5px;line-height:1.55}
+  .corr .cut{border-right:1px solid var(--line)}
+  @media(max-width:640px){.corr .cut{border-right:0;border-bottom:1px solid var(--line)}}
+  .corr .lbl{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:6px}
+  .corr .cut .lbl{color:var(--red)}
+  .corr .kept .lbl{color:var(--green)}
+  .corr .txt{color:var(--text)}
+  .corr .cut .txt{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(199,54,76,.5)}
+  .corr .why{font-size:13px;color:var(--muted);padding:11px 15px;border-top:1px solid var(--line);background:var(--bg2);line-height:1.5}
+  .corr .why b{color:var(--body);font-weight:600}
+
+  /* inputs / outputs mini-stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}
+  @media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{border:1px solid var(--line);border-radius:8px;padding:14px}
+  .stat .num{font-size:24px;font-weight:700;letter-spacing:-.02em}
+  .stat .cap{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;color:var(--muted);margin-top:4px;text-transform:uppercase}
+
+  /* source list */
+  .srcs{list-style:none;margin:8px 0 0;columns:2;column-gap:26px}
+  @media(max-width:640px){.srcs{columns:1}}
+  .srcs li{font-size:13px;color:var(--body);line-height:1.4;padding:5px 0;break-inside:avoid}
+  .srcs li b{color:var(--text);font-weight:600}
+
+  /* code / tokens */
+  code{font-family:var(--f-mono);font-size:12.5px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:4px;padding:1px 5px;color:var(--text)}
+  pre{font-family:var(--f-mono);font-size:12px;line-height:1.6;background:var(--bg2);border:1px solid var(--line);
+    border-radius:8px;padding:14px 16px;margin:14px 0;overflow-x:auto;color:var(--body)}
+  pre .c{color:var(--faint)}
+
+  /* swatches */
+  .pal{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+  @media(max-width:640px){.pal{grid-template-columns:repeat(2,1fr)}}
+  .sw{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .sw .chip{height:44px}
+  .sw .cap{padding:8px 10px;font-family:var(--f-mono);font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;gap:6px}
+  .sw .cap b{color:var(--text);font-weight:600}
+
+  /* type spec table */
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:400}
+  td{color:var(--body);line-height:1.45}
+  td b{color:var(--text);font-weight:600}
+
+  /* hover demo */
+  .demo{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:14px 0}
+  .chipx{font-family:var(--f-sans);font-size:12.5px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:99px;padding:6px 13px;color:var(--text)}
+  .btnx{font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;border:1px solid var(--ctrl);
+    border-radius:6px;padding:7px 13px;color:var(--text);background:transparent;transition:none}
+  .btnx:hover{border-width:2px;padding:6px 12px}
+  .btnx.primary{background:rgba(59,99,196,.06);border-color:rgba(59,99,196,.4);color:var(--accent)}
+  .seg{display:inline-flex;background:var(--panel2);border-radius:8px;padding:3px}
+  .seg span{font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;padding:6px 14px;border-radius:6px;color:var(--muted);cursor:pointer;user-select:none}
+  .seg span.on{background:#fff;color:var(--text);font-weight:700;box-shadow:0 1px 3px rgba(30,40,60,.14)}
+
+  /* footer */
+  footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);
+    font-family:var(--f-mono);font-size:10.5px;letter-spacing:.03em;color:var(--muted);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  footer a{color:inherit;text-decoration:none;border-bottom:1px solid transparent}
+  footer a:hover{color:var(--text);border-bottom-color:var(--ctrl)}
+  footer .dot{margin:0 6px;color:var(--faint)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <a class="brand" href="/">AI RISK WEB</a>
+    <a class="backlink" href="/">&#9664; BACK TO THE WEB</a>
+  </div>
+
+  <h1 style="margin-top:44px">Style Guide</h1>
+  <p class="lede">AI Risk Web condenses eleven long-form primary sources into 67 briefings, 11 guided walks, and 8 theme pages. Every line reads the same way and every claim traces to written source material. This is the guide that keeps it consistent.</p>
+
+  <nav class="toc">
+    <div class="toc-col">
+      <a class="toc-h" href="#voice">I &middot; Content &amp; Voice</a>
+      <a href="#register">The register</a>
+      <a href="#inputs">Inputs</a>
+      <a href="#banned">Banned &amp; allowed</a>
+      <a href="#corrections">Corrections</a>
+      <a href="#accuracy">Accuracy</a>
+      <a href="#format">Formatting</a>
+    </div>
+    <div class="toc-col">
+      <a class="toc-h" href="#visual">II &middot; Visual System</a>
+      <a href="#principles">Principles</a>
+      <a href="#color">Color</a>
+      <a href="#type">Typography</a>
+      <a href="#hover">Hover cue</a>
+    </div>
+  </nav>
+
+  <!-- ============================ PART I ============================ -->
+  <div class="part" id="voice">
+    <div class="k">Part I</div>
+    <h2>Content &amp; Voice</h2>
+    <p>Every sentence on the site delivers one piece of condensed, accurate information. These rules are the standard each briefing, walk note, theme page, and crux box is edited against.</p>
+  </div>
+
+  <div class="sect" id="register">The register — encyclopedia, not newsletter</div>
+  <p>The copy is an <strong>objective summary</strong>, not commentary. Its purpose is to share condensed information, not to persuade, react, or perform. The default register is an encyclopedia entry, written for a reader who wants the idea rather than the writer's opinion of it.</p>
+
+  <ol class="laws">
+    <li><b>Plain declarative sentences.</b> Front-load the claim. State what the source says, then stop.</li>
+    <li><b>No editorializing.</b> No winks, no nonchalance, no evaluative flourish. The information is the point; the writer is not in the frame.</li>
+    <li><b>Attribute what's contested.</b> When a claim is one person's estimate or argument, name whose it is — "Carlsmith estimates," "the paper argues" — so the reader can weigh it.</li>
+    <li><b>Compress ruthlessly, but never past the truth.</b> A vivid three-word compression is welcome if it's <em>factually</em> exact. Shorter is better only until it starts to distort.</li>
+    <li><b>Neutral on live disagreements.</b> Where serious people disagree, the site lays out the disagreement (that's what crux boxes are for) rather than quietly picking a side.</li>
+  </ol>
+
+  <div class="box blue">
+    <span class="h">Tone &amp; attitude, in one line</span>
+    Calm, informative, unaffiliated. The numbers and the arguments carry the weight — not adjectives, not urgency, not a house opinion. The site summarizes the debate; it does not enter it.
+  </div>
+
+  <div class="sect" id="inputs">The inputs — what the copy is made from</div>
+  <p>Nothing here is invented and nothing is opinion-sourced. Every line is a compression of an <strong>actual assertion in one of eleven primary sources</strong>, with 80,000 Hours' curation as the spine. The audit that hardened the site checked roughly 280 source-attributed claims against the originals.</p>
+
+  <div class="stats">
+    <div class="stat"><div class="num">11</div><div class="cap">Primary sources</div></div>
+    <div class="stat"><div class="num">67</div><div class="cap">Concept briefings</div></div>
+    <div class="stat"><div class="num">11</div><div class="cap">Guided walks</div></div>
+    <div class="stat"><div class="num">~280</div><div class="cap">Claims audited</div></div>
+  </div>
+
+  <p style="margin-top:16px">The eleven readings the copy draws from:</p>
+  <ul class="srcs">
+    <li><b>Carlsmith</b> — is power-seeking AI an existential risk?</li>
+    <li><b>Cotra</b> — cold takes / without-specific-countermeasures</li>
+    <li><b>Karnofsky</b> — the Most Important Century</li>
+    <li><b>Aschenbrenner</b> — Situational Awareness</li>
+    <li><b>Amodei</b> — Machines of Loving Grace</li>
+    <li><b>AI 2027</b> — the scenario</li>
+    <li><b>Epoch</b> — the training-compute / hardware reports</li>
+    <li><b>Kulveit et al.</b> — gradual disempowerment</li>
+    <li><b>Long, Sebo, Butlin et al.</b> — digital-minds welfare</li>
+    <li><b>MacAskill &amp; Moorhouse</b> — preparing for the intelligence explosion</li>
+    <li><b>Erdil &amp; Besiroglu</b> — automation timelines &amp; takeoff</li>
+  </ul>
+
+  <div class="sect" id="banned">Banned patterns and kept exceptions</div>
+  <p>The running verdicts from the site's revision passes: patterns removed wherever they appear, and the exceptions kept because they are both vivid and accurate.</p>
+
+  <div class="cols">
+    <div class="card ban">
+      <div class="h">Banned</div>
+      <ul>
+        <li><b>Evaluative adverbs &amp; superlatives</b><br><span class="ex">strikingly, landmark, rigorous, "strongest available"</span></li>
+        <li><b>Casual idioms</b><br><span class="ex">punt, tap out, "&amp; co.", "back in 2020"</span></li>
+        <li><b>Insinuating adverbs</b><br><span class="ex">"quietly assume," "conveniently"</span></li>
+        <li><b>Generic-you</b><br><span class="ex">"a utility you can point at problems"</span></li>
+        <li><b>Newsletter framing</b><br><span class="ex">"The takeaway is…," "Here's the thing"</span></li>
+      </ul>
+    </div>
+    <div class="card ok">
+      <div class="h">Allowed</div>
+      <ul>
+        <li><b>First-person plural</b> — "we/us" is allowed where it mirrors the literature's own framing, never as reader-address.</li>
+        <li><b>Vivid-but-factual compression</b><br><span class="ex">"Genius as a utility."</span></li>
+        <li><span class="ex">"nuclear-plant territory"</span> — a real scale reference, not hype.</li>
+        <li><span class="ex">"random SF startup"</span> — accurate, and does work no formal phrase would.</li>
+        <li><span class="ex">"worth fighting for"</span> — kept on the Positive-futures theme; it's the sources' own stance.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sect" id="corrections">Corrections — three recurring kinds of edit</div>
+  <p>These are representative before/after edits from the site's revision history, grouped into the three kinds of correction that recur most often.</p>
+
+  <h3>1. De-editorializing — the same fact, stated plainly</h3>
+  <div class="corr">
+    <div class="tag"><b>Voice</b> &middot; from the site-wide de-editorializing pass</div>
+    <div class="pair">
+      <div class="cell cut"><span class="lbl">Cut</span><span class="txt">"…and everything else follows from taking it seriously."</span></div>
+      <div class="cell kept"><span class="lbl">Kept</span><span class="txt">"The rest of the paper works out the consequences."</span></div>
+    </div>
+    <div class="why"><b>Why:</b> the first version editorializes — it tells the reader how to feel about the premise. The second just describes the paper's structure. Same information, without steering the reader.</div>
+  </div>
+  <div class="corr">
+    <div class="tag"><b>Voice</b> &middot; generic-you removed, compression kept</div>
+    <div class="pair">
+      <div class="cell cut"><span class="lbl">Cut</span><span class="txt">"a utility you can point at problems"</span></div>
+      <div class="cell kept"><span class="lbl">Kept</span><span class="txt">"Genius as a utility."</span></div>
+    </div>
+    <div class="why"><b>Why:</b> "you can point at" is generic-you and reads conversational. The compressed noun phrase keeps the vivid idea and drops the address.</div>
+  </div>
+
+  <h3>2. De-fabricating — cutting anything the source never said</h3>
+  <div class="corr">
+    <div class="tag"><b>Fabrication</b> &middot; caught in the accuracy audit</div>
+    <div class="pair">
+      <div class="cell cut"><span class="lbl">Cut — invented</span><span class="txt">Karnofsky was "sweating profusely" over the century.</span></div>
+      <div class="cell kept"><span class="lbl">Kept — real quote</span><span class="txt">"…we should be doing a double take" at the century we live in.</span></div>
+    </div>
+    <div class="why"><b>Why:</b> the vivid phrase was never in the source — it was fabricated color. It was replaced with the writer's actual words. On a subject where people disagree, a fabricated quote is a serious failure.</div>
+  </div>
+  <div class="corr">
+    <div class="tag"><b>Fabrication</b> &middot; an entire argument removed</div>
+    <div class="pair">
+      <div class="cell cut"><span class="lbl">Cut — invented</span><span class="txt">Cotra's "substitution-vs-adoption" argument (attributed to reading 6).</span></div>
+      <div class="cell kept"><span class="lbl">Kept — what's there</span><span class="txt">Back-loaded impacts; uses that aren't gated by legitimacy. Bio-anchors framed as background, not the dialogue.</span></div>
+    </div>
+    <div class="why"><b>Why:</b> the substitution-vs-adoption line wasn't in the piece at all. Deleted, not softened.</div>
+  </div>
+
+  <h3>3. Precision — right claim, wrong scope or detail</h3>
+  <div class="corr">
+    <div class="tag"><b>Precision</b> &middot; scope tightened</div>
+    <div class="pair">
+      <div class="cell cut"><span class="lbl">Cut</span><span class="txt">Erdil: ~20-year median to full automation of "the economy."</span></div>
+      <div class="cell kept"><span class="lbl">Kept</span><span class="txt">…full automation of <b>remote work</b>.</span></div>
+    </div>
+    <div class="why"><b>Why:</b> "the economy" over-claims the source. Remote work is what the estimate is actually about.</div>
+  </div>
+  <div class="corr">
+    <div class="tag"><b>Precision</b> &middot; attribution corrected</div>
+    <div class="pair">
+      <div class="cell cut"><span class="lbl">Cut</span><span class="txt">Aschenbrenner calls for the "nationalization" of AI labs.</span></div>
+      <div class="cell kept"><span class="lbl">Kept</span><span class="txt">"The Project" — which he explicitly disclaims is nationalization.</span></div>
+    </div>
+    <div class="why"><b>Why:</b> the source pre-empts exactly this misreading. Getting an author's own claim right is non-negotiable.</div>
+  </div>
+  <div class="corr">
+    <div class="tag"><b>Precision</b> &middot; number and evaluation both fixed</div>
+    <div class="pair">
+      <div class="cell cut"><span class="lbl">Cut</span><span class="txt">Carlsmith puts existential catastrophe at ">10%"; MacAskill ranks the "most serious / most underrated" risks.</span></div>
+      <div class="cell kept"><span class="lbl">Kept</span><span class="txt">Carlsmith's multiplied estimate is <b>~5%</b> (the &gt;10% is his later 2022 holistic revision); severity rankings removed entirely.</span></div>
+    </div>
+    <div class="why"><b>Why:</b> two errors in one region — a number pinned to the wrong version of the estimate, and superlative rankings the source never made.</div>
+  </div>
+
+  <div class="sect" id="accuracy">The accuracy rule</div>
+  <p>One rule sits beneath the voice: <strong>every content claim traces to a source, and any new claim is verified against that source before it ships.</strong> A full audit — eleven parallel checks against the readings — produced about sixty corrections; the examples above are from it. Two standing consequences follow:</p>
+  <div class="box gold">
+    <span class="h">Standing rules</span>
+    <strong>Never claim a relationship the map doesn't draw.</strong> A walk note may not assert two ideas are "in tension" unless a tension edge actually connects them. And <strong>no invented color</strong> — no quote, metaphor, or figure that isn't in the source, however good it would sound.
+  </div>
+
+  <div class="sect" id="format">Formatting the copy</div>
+  <table>
+    <tr><th>Unit</th><th>Shape</th><th>Rule</th></tr>
+    <tr><td><b>Concept briefing</b></td><td>One self-contained paragraph, ~2–4 sentences.</td><td>Leads with the idea in plain terms; adds the source's nuance; ends without a flourish.</td></tr>
+    <tr><td><b>Walk note</b></td><td>A short note per stop (30+ characters).</td><td>Ties that concept to <em>this</em> reading's argument. Never claims an undrawn edge.</td></tr>
+    <tr><td><b>Crux box</b></td><td>A stated disagreement.</td><td>Presents both positions; picks no winner.</td></tr>
+    <tr><td><b>Theme page</b></td><td>A short descriptive frame.</td><td>Says what the cluster is about, in the sources' terms.</td></tr>
+    <tr><td><b>Links</b></td><td>Inline, in the accent blue.</td><td>Woven into the sentence — never a bare "click here," never prefixed with a glyph.</td></tr>
+  </table>
+
+  <!-- ============================ PART II ============================ -->
+  <div class="part" id="visual">
+    <div class="k">Part II</div>
+    <h2>Visual System</h2>
+    <p>The visual system serves the same goal as the voice: legible and unobtrusive. Light, editorial, hand-rolled — one accent color, two fonts, borders instead of shadows. This part is the condensed reference; the fuller version lives in the design-language spec the site was distilled into.</p>
+  </div>
+
+  <div class="sect" id="principles">Principles</div>
+  <p>The site is built to be easy to move through and easy to reverse. The principles behind that:</p>
+
+  <div class="psub">Navigation</div>
+  <ul class="plist">
+    <li><b>Everything on the web is clickable</b> — every concept and every theme opens its own page.</li>
+    <li><b>Navigation is always reversible</b> — HOME and BACK are both always present, and Escape or a double-click resets the view.</li>
+    <li><b>Hover to explore before committing</b> — hovering a concept or source highlights its region of the web, so you can look before you click.</li>
+    <li><b>No dead ends</b> — any path can be walked back, so exploring never has a cost.</li>
+  </ul>
+
+  <div class="psub">Look &amp; feedback</div>
+  <div class="pex">
+    <div class="d"><span class="exline">A concept in ink, and a <a href="#" onclick="return false">link in blue</a>.</span></div>
+    <div class="t"><b>One accent color</b> — a restrained blue means link / action only. Everything else is ink.</div>
+  </div>
+  <div class="pex">
+    <div class="d"><div><div class="exsans">Reading text is sans.</div><div class="exmono">Chrome is mono</div></div></div>
+    <div class="t"><b>Two fonts by job</b> — sans for reading, mono for all structure and chrome.</div>
+  </div>
+  <div class="pex">
+    <div class="d">
+      <span class="excol"><span class="minibox b">border</span><span class="exlbl">use</span></span>
+      <span class="excol"><span class="minibox s">shadow</span><span class="exlbl">avoid</span></span>
+    </div>
+    <div class="t"><b>Borders, not shadows</b> — nearly everything is a 1px border; shadows only for things that truly float.</div>
+  </div>
+  <div class="pex">
+    <div class="d">
+      <span class="excol"><span class="btnx" style="pointer-events:none">BACK</span><span class="exlbl">rest &middot; 1px</span></span>
+      <span class="excol"><span class="btnx is-hover" style="pointer-events:none">BACK</span><span class="exlbl">hover &middot; 2px</span></span>
+    </div>
+    <div class="t"><b>Feedback is intensity, never hue</b> — hover thickens the border and trims padding to match, so the color never changes and nothing moves.</div>
+  </div>
+  <div class="pex">
+    <div class="d"><span class="exhint">double-click or esc to reset</span></div>
+    <div class="t"><b>Minimal chrome</b> — no stats or counters; one faint hint at most.</div>
+  </div>
+
+  <div class="sect" id="color">Color</div>
+  <p>The neutral skeleton, then eight muted jewel tones for the categorical themes — desaturated, roughly equal weight, no neon.</p>
+  <div class="pal">
+    <div class="sw"><div class="chip" style="background:#16181D"></div><div class="cap"><b>ink</b><span>#16181D</span></div></div>
+    <div class="sw"><div class="chip" style="background:#3B63C4"></div><div class="cap"><b>accent</b><span>#3B63C4</span></div></div>
+    <div class="sw"><div class="chip" style="background:#5A6472"></div><div class="cap"><b>muted</b><span>#5A6472</span></div></div>
+    <div class="sw"><div class="chip" style="background:#E2E5EB"></div><div class="cap"><b>line</b><span>#E2E5EB</span></div></div>
+  </div>
+  <div class="pal">
+    <div class="sw"><div class="chip" style="background:#A8862B"></div><div class="cap"><b>Foundations</b><span>gold</span></div></div>
+    <div class="sw"><div class="chip" style="background:#3B63C4"></div><div class="cap"><b>Governance</b><span>blue</span></div></div>
+    <div class="sw"><div class="chip" style="background:#CE5A21"></div><div class="cap"><b>Timelines</b><span>orange</span></div></div>
+    <div class="sw"><div class="chip" style="background:#177E9C"></div><div class="cap"><b>Scaling</b><span>teal</span></div></div>
+    <div class="sw"><div class="chip" style="background:#238B53"></div><div class="cap"><b>Positive</b><span>green</span></div></div>
+    <div class="sw"><div class="chip" style="background:#B23A92"></div><div class="cap"><b>Digital minds</b><span>magenta</span></div></div>
+    <div class="sw"><div class="chip" style="background:#6E45BD"></div><div class="cap"><b>Disempower</b><span>purple</span></div></div>
+    <div class="sw"><div class="chip" style="background:#C7364C"></div><div class="cap"><b>Misalignment</b><span>red</span></div></div>
+  </div>
+  <p>Dashed red <code>#C7364C</code> is semantic: "in tension / opposition." It's also the logo mark. Any hue becomes a UI surface through one tint formula:</p>
+  <pre><span class="c">/* turn any theme hex into a pill / chip / row */</span>
+background: &lt;hex&gt; @ 26% alpha;
+border-color: &lt;hex&gt; @ 85% alpha;
+color: shade(&lt;hex&gt;, 0.60);   <span class="c">/* the hue darkened 60% toward black */</span></pre>
+
+  <div class="sect" id="type">Typography</div>
+  <p>Two families, deliberately split. The tracking contrast is intentional: tight negative tracking on big sans titles, wide positive tracking on small mono labels.</p>
+  <table>
+    <tr><th>Role</th><th>Font</th><th>Size / weight</th><th>Tracking</th></tr>
+    <tr><td><b>Wordmark</b></td><td>mono</td><td>18px / 700, uppercase</td><td>.2em</td></tr>
+    <tr><td><b>Eyebrow, section header</b></td><td>mono</td><td>10px / 400, uppercase</td><td>.14–.16em</td></tr>
+    <tr><td><b>Title</b></td><td>sans</td><td>20px / 700</td><td>-.01em</td></tr>
+    <tr><td><b>Body</b></td><td>sans</td><td>13.5–14px / 400</td><td>—</td></tr>
+    <tr><td><b>Byline, counter, badge</b></td><td>mono</td><td>10–12px</td><td>.05–.08em</td></tr>
+  </table>
+
+  <div class="sect" id="hover">The one hover cue — copy it exactly</div>
+  <p>Rest-state color says what a thing is. Hover says "you're on it" via intensity only: the element's <strong>own</strong> border thickens 1px&rarr;2px, and padding drops 1px to compensate — zero layout shift. Never a hue change on hover; never <code>filter:brightness()</code> (it muddies inner white badges). Try the button:</p>
+  <div class="demo">
+    <span class="chipx">concept chip</span>
+    <button class="btnx">&#9664; BACK</button>
+    <button class="btnx primary">START WALK</button>
+    <span class="seg" id="segDemo"><span class="on">WEB</span><span>MATRIX</span></span>
+  </div>
+  <pre>.thing        { border:1px solid var(--ctrl); padding:7px 12px; }
+.thing:hover  { border-width:2px;             padding:6px 11px; }</pre>
+  <p>Border strength encodes meaning: <code>--line</code> for dividers and non-interactive surfaces; <code>--ctrl</code> (ink 45%) for pressable controls; theme-85% / ink-60% for content pills, the strongest borders on the page. Segmented controls use a raised white pill for the active tab — never an underline (underline tabs read "vibecoded").</p>
+
+  <footer>
+    <span>Style guide for <a href="/">AI Risk Web</a> &middot; <a href="https://shailenparmar.com" target="_blank" rel="noopener">Shailen Parmar</a> 2026</span>
+    <span><a href="https://github.com/shailenparmar/ai-risk-web" target="_blank" rel="noopener">github</a><span class="dot">&middot;</span><a href="https://shailenparmar.com/connect" target="_blank" rel="noopener">contact</a></span>
+  </footer>
+
+</div>
+<script>
+  // demo segmented control — click to toggle the active segment (matches the real WEB|MATRIX tabs)
+  document.querySelectorAll('#segDemo span').forEach(function(s){
+    s.addEventListener('click',function(){
+      this.parentElement.querySelectorAll('span').forEach(function(x){x.classList.remove('on');});
+      this.classList.add('on');
+    });
+  });
+</script>
+</body>
+</html>
